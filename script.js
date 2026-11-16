@@ -95,11 +95,12 @@ analyzeBtn.addEventListener('click', async () => {
 // Call Google Gemini 1.5 Flash REST Endpoint directly
 // Call Google Gemini REST Endpoint directly
 async function analyzeLeafWithGemini(apiKey, base64Data, mimeType) {
-    // List of model endpoints to try in fallback order
+    // Model endpoints to attempt in fallback order
     const candidateEndpoints = [
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`
     ];
 
     const promptText = `
@@ -137,7 +138,7 @@ async function analyzeLeafWithGemini(apiKey, base64Data, mimeType) {
         }]
     };
 
-    let lastError = "";
+    let lastErrorMessage = "";
 
     for (const endpoint of candidateEndpoints) {
         try {
@@ -154,14 +155,14 @@ async function analyzeLeafWithGemini(apiKey, base64Data, mimeType) {
                 return JSON.parse(cleanJson);
             } else {
                 const errData = await response.json();
-                lastError = errData.error?.message || `HTTP ${response.status}`;
+                lastErrorMessage = errData.error?.message || `HTTP ${response.status}`;
             }
         } catch (err) {
-            lastError = err.message;
+            lastErrorMessage = err.message;
         }
     }
 
-    throw new Error(`Connection failed: ${lastError}`);
+    throw new Error(`API Error: ${lastErrorMessage}`);
 }
 
 // Display results in UI
