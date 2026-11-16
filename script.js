@@ -102,37 +102,55 @@ analyzeBtn.addEventListener('click', async () => {
 });
 
 // Run client-side inference using TensorFlow.js
+// Fixed client-side TensorFlow.js inference function
 async function runTensorFlowInference(imgElement) {
     return tf.tidy(() => {
-        // Preprocess image to 224x224 RGB normalized tensor
-        let tensor = tf.browser.fromPixels(imgElement)
-            .resizeNearestNeighbor([224, 224])
-            .toFloat()
-            .div(tf.scalar(255.0))
-            .expandDims();
+        // 1. Convert image element to 3-channel RGB Tensor (drops Alpha channel)
+        let tensor = tf.browser.fromPixels(imgElement, 3);
 
-        const predictions = tfModel.predict(tensor);
-        const probabilities = predictions.dataSync();
-        const maxIndex = predictions.argMax(-1).dataSync()[0];
+        // 2. Resize to 224x224 using bilinear interpolation for smoother edge scaling
+        tensor = tf.image.resizeBilinear(tensor, [224, 224]);
 
+        // 3. Normalize pixels specifically for MobileNetV2: Range [-1, 1]
+        // Formula: (pixel / 127.5) - 1.0
+        tensor = tensor.toFloat().sub(tf.scalar(127.5)).div(tf.scalar(127.5));
+
+        // 4. Expand dimensions to shape [1, 224, 224, 3] for batch processing
+        const batchTensor = tensor.expandDims(0);
+
+        // 5. Run inference through CNN layers
+        const predictions = tfModel.predict(batchTensor);
+        const softmaxValues = predictions.dataSync();
+
+        // 6. Find index of highest confidence probability score
+        let maxIndex = 0;
+        let maxProb = softmaxValues[0];
+        for (let i = 1; i < softmaxValues.length; i++) {
+            if (softmaxValues[i] > maxProb) {
+                maxProb = softmaxValues[i];
+                maxIndex = i;
+            }
+        }
+
+        // 7. Extract class label accurately
         const rawClassName = labelsMap[maxIndex] || "Tomato___healthy";
         const parts = rawClassName.split('___');
         
-        const crop = parts[0].replace(/_/g, ' ');
-        const disease = parts[1] ? parts[1].replace(/_/g, ' ') : "Healthy";
-        const confidenceVal = (probabilities[maxIndex] * 100).toFixed(1);
+        const cropName = parts[0].replace(/_/g, ' ');
+        const diseaseName = parts[1] ? parts[1].replace(/_/g, ' ') : "Healthy";
+        const confidenceVal = (maxProb * 100).toFixed(1);
 
         return {
-            crop: crop,
-            disease: disease,
+            crop: cropName,
+            disease: diseaseName,
             confidence: `${confidenceVal}%`,
             symptoms: [
-                `Tensor pattern closely maps to ${crop} ${disease} feature vectors.`,
-                `Visual discoloration and lesion distribution detected.`
+                `Extracted visual features match ${cropName} ${diseaseName} pathology patterns.`,
+                `Pattern recognition confidence registered at ${confidenceVal}%.`
             ],
-            treatment: disease.toLowerCase().includes('healthy') 
+            treatment: diseaseName.toLowerCase().includes('healthy')
                 ? "No pathogen symptoms identified. Continue standard irrigation and plant maintenance."
-                : `Isolate affected plants. Apply approved organic copper/sulfur fungicide or appropriate target treatment for ${disease}.`
+                : `Isolate infected foliage. Treat ${cropName} with targeted organic copper fungicide or appropriate pesticide.`
         };
     });
 }
