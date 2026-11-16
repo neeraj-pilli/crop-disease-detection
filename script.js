@@ -94,8 +94,7 @@ analyzeBtn.addEventListener('click', async () => {
 
 // Call Google Gemini 1.5 Flash REST Endpoint directly
 async function analyzeLeafWithGemini(apiKey, base64Data, mimeType) {
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     const promptText = `
     You are an expert plant pathologist. Analyze this crop leaf image.
     First, determine if the image shows a valid plant leaf. If not, return JSON stating crop: "Unknown", disease: "Not a Valid Leaf Image", confidence: "0%", symptoms: ["No clear leaf features detected"], treatment: "Please upload a clear, focused photo of a plant leaf."
