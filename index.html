@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <!-- TensorFlow.js Library for Browser Inference -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
 </head>
 <body>
 
@@ -19,15 +21,15 @@
                 <h1>Crop Disease Detection AI</h1>
             </div>
         </div>
-        <div class="api-key-container">
-            <input type="password" id="apiKeyInput" placeholder="Enter Gemini API Key">
+        <div class="model-status" id="modelStatus">
+            <i class="fa-solid fa-circle-notch fa-spin"></i> Loading AI Model...
         </div>
     </header>
 
     <main>
         <div class="hero-banner">
-            <h2>AI-Powered Crop Disease Detection</h2>
-            <p>Upload a clear photo of any crop leaf to instantly identify diseases, symptoms, and remedies using Gemini Vision AI.</p>
+            <h2>Local AI Crop Disease Recognition</h2>
+            <p>Upload a leaf image for instant client-side pathology classification trained on 38 plant disease classes.</p>
         </div>
 
         <div class="upload-card" id="dropZone" onclick="document.getElementById('fileInput').click()">
@@ -45,22 +47,22 @@
         <!-- Preview Section -->
         <div class="preview-section" id="previewSection" style="display: none;">
             <div class="preview-img-box">
-                <img id="imagePreview" src="" alt="Leaf preview">
+                <img id="imagePreview" src="" alt="Leaf preview" crossorigin="anonymous">
             </div>
             <div class="preview-info">
                 <h4 id="fileName">leaf_sample.jpg</h4>
-                <p>Image loaded successfully. Ready for AI pattern analysis.</p>
+                <p>Image ready for local neural network inference.</p>
                 <button class="btn" id="analyzeBtn" style="margin-top: 10px;">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Run AI Diagnosis
                 </button>
             </div>
         </div>
 
-        <!-- Loading State -->
+        <!-- Loading Spinner -->
         <div class="loading-spinner" id="loadingSpinner" style="display: none;">
             <div class="spinner"></div>
-            <h4>Analyzing Leaf Pixels & Pathology Patterns...</h4>
-            <p>Communicating with Gemini Vision AI to identify pathology markers.</p>
+            <h4>Running Convolutional Neural Network...</h4>
+            <p>Processing image tensor locally across 38 PlantVillage target classes.</p>
         </div>
 
         <!-- Results Display -->
@@ -75,7 +77,7 @@
 
             <div class="result-grid">
                 <div class="result-box">
-                    <h4><i class="fa-solid fa-stethoscope" style="color: #10b981;"></i> Symptoms Identified</h4>
+                    <h4><i class="fa-solid fa-stethoscope" style="color: #10b981;"></i> Symptoms & Findings</h4>
                     <ul id="resSymptoms"></ul>
                 </div>
                 <div class="result-box">
