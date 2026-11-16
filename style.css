@@ -62,24 +62,20 @@ header {
     color: var(--text-main);
 }
 
-.api-key-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.api-key-container input {
-    padding: 8px 14px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
+.model-status {
     font-size: 0.85rem;
-    width: 220px;
-    outline: none;
-    transition: border-color 0.2s ease;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: #f3f4f6;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
 }
 
-.api-key-container input:focus {
-    border-color: var(--primary);
+.model-status.ready {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    border-color: #a7f3d0;
 }
 
 main {
@@ -119,7 +115,6 @@ main {
     text-align: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    position: relative;
     margin-bottom: 2rem;
 }
 
@@ -169,13 +164,13 @@ input[type="file"] {
     display: none;
 }
 
-/* Preview Section */
 .preview-section {
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 1.5rem;
     margin-bottom: 2rem;
+    display: flex;
     align-items: center;
     gap: 1.5rem;
 }
@@ -187,7 +182,6 @@ input[type="file"] {
     overflow: hidden;
     border: 1px solid var(--border);
     flex-shrink: 0;
-    background: #000;
 }
 
 .preview-img-box img {
@@ -210,7 +204,6 @@ input[type="file"] {
     color: var(--text-muted);
 }
 
-/* Loading State */
 .loading-spinner {
     text-align: center;
     padding: 2.5rem;
@@ -235,17 +228,6 @@ input[type="file"] {
     100% { transform: rotate(360deg); }
 }
 
-.loading-spinner h4 {
-    font-size: 1rem;
-    margin-bottom: 4px;
-}
-
-.loading-spinner p {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-}
-
-/* Results Card */
 .result-container {
     background: var(--card-bg);
     border: 1px solid var(--border);
@@ -296,24 +278,6 @@ input[type="file"] {
     gap: 1.5rem;
 }
 
-@media (max-width: 650px) {
-    header {
-        flex-direction: column;
-        gap: 12px;
-        align-items: flex-start;
-    }
-    .api-key-container input {
-        width: 100%;
-    }
-    .result-grid {
-        grid-template-columns: 1fr;
-    }
-    .preview-section {
-        flex-direction: column;
-        text-align: center;
-    }
-}
-
 .result-box {
     background: var(--bg-main);
     padding: 1.25rem;
@@ -328,7 +292,6 @@ input[type="file"] {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: var(--text-main);
 }
 
 .result-box ul {
@@ -342,4 +305,19 @@ input[type="file"] {
     font-size: 0.85rem;
     color: var(--text-muted);
     line-height: 1.6;
+}
+
+@media (max-width: 650px) {
+    header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    .result-grid {
+        grid-template-columns: 1fr;
+    }
+    .preview-section {
+        flex-direction: column;
+        text-align: center;
+    }
 }
