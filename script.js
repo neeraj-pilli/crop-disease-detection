@@ -95,11 +95,10 @@ analyzeBtn.addEventListener('click', async () => {
 // Call Google Gemini 1.5 Flash REST Endpoint directly
 // Call Google Gemini REST Endpoint directly
 async function analyzeLeafWithGemini(apiKey, base64Data, mimeType) {
-    // List of model endpoints to try in sequence
-    const modelEndpoints = [
+    // List of model endpoints to try in fallback order
+    const candidateEndpoints = [
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-        `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`
     ];
 
@@ -138,12 +137,11 @@ async function analyzeLeafWithGemini(apiKey, base64Data, mimeType) {
         }]
     };
 
-    let lastError = null;
+    let lastError = "";
 
-    // Loop through endpoints until one succeeds
-    for (const url of modelEndpoints) {
+    for (const endpoint of candidateEndpoints) {
         try {
-            const response = await fetch(url, {
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -155,15 +153,15 @@ async function analyzeLeafWithGemini(apiKey, base64Data, mimeType) {
                 const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
                 return JSON.parse(cleanJson);
             } else {
-                const errJson = await response.json();
-                lastError = errJson.error?.message || `HTTP ${response.status}`;
+                const errData = await response.json();
+                lastError = errData.error?.message || `HTTP ${response.status}`;
             }
-        } catch (e) {
-            lastError = e.message;
+        } catch (err) {
+            lastError = err.message;
         }
     }
 
-    throw new Error(lastError || "Could not connect to Gemini API models.");
+    throw new Error(`Connection failed: ${lastError}`);
 }
 
 // Display results in UI
