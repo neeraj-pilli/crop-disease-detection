@@ -1,6 +1,4 @@
 let selectedFile = null;
-let tfModel = null;
-let labelsMap = null;
 
 // DOM Elements
 const dropZone = document.getElementById('dropZone');
@@ -11,30 +9,9 @@ const fileName = document.getElementById('fileName');
 const analyzeBtn = document.getElementById('analyzeBtn');
 const loadingSpinner = document.getElementById('loadingSpinner');
 const resultContainer = document.getElementById('resultContainer');
-const modelStatus = document.getElementById('modelStatus');
+const apiKeyInput = document.getElementById('apiKeyInput');
 
-// Load Trained TensorFlow.js Model & PlantVillage Labels on App Start
-async function initLocalModel() {
-    try {
-        // Fetch class mappings (38 PlantVillage Classes)
-        const labelsResponse = await fetch('./model/model_labels.json');
-        if (!labelsResponse.ok) throw new Error("Labels file missing");
-        labelsMap = await labelsResponse.json();
-
-        // Load TensorFlow.js layers model
-        tfModel = await tf.loadLayersModel('./model/model.json');
-        
-        modelStatus.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> AI Model Ready`;
-        modelStatus.classList.add('ready');
-    } catch (err) {
-        console.warn("Local model files not found in /model folder yet. Running client fallback parser.", err);
-        modelStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> Using Embedded Classifier`;
-    }
-}
-
-window.addEventListener('DOMContentLoaded', initLocalModel);
-
-// Drag and drop event handling
+// Drag and drop handlers
 dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
     dropZone.classList.add('dragover');
@@ -71,134 +48,128 @@ function handleFile(file) {
     reader.readAsDataURL(file);
 }
 
-// Click listener for Run AI Diagnosis
-analyzeBtn.addEventListener('click', async () => {
-    if (!selectedFile) {
-        alert("Please select a leaf image first.");
-        return;
-    }
-
-    loadingSpinner.style.display = 'block';
-    resultContainer.style.display = 'none';
-
-    setTimeout(async () => {
-        try {
-            if (tfModel && labelsMap) {
-                // Perform real-time TensorFlow.js execution
-                const diagnosis = await runTensorFlowInference(imagePreview);
-                displayResults(diagnosis);
-            } else {
-                // Local pattern fallback if model assets are still downloading
-                const diagnosis = generateOfflineDiagnosis(selectedFile.name);
-                displayResults(diagnosis);
-            }
-        } catch (error) {
-            console.error("Diagnosis Error:", error);
-            alert("Analysis error: " + error.message);
-        } finally {
-            loadingSpinner.style.display = 'none';
-        }
-    }, 400);
-});
-
-// Run client-side inference using TensorFlow.js
-// Fixed client-side TensorFlow.js inference function
-async function runTensorFlowInference(imgElement) {
-    return tf.tidy(() => {
-        // 1. Convert image element to 3-channel RGB Tensor (drops Alpha channel)
-        let tensor = tf.browser.fromPixels(imgElement, 3);
-
-        // 2. Resize to 224x224 using bilinear interpolation for smoother edge scaling
-        tensor = tf.image.resizeBilinear(tensor, [224, 224]);
-
-        // 3. Normalize pixels specifically for MobileNetV2: Range [-1, 1]
-        // Formula: (pixel / 127.5) - 1.0
-        tensor = tensor.toFloat().sub(tf.scalar(127.5)).div(tf.scalar(127.5));
-
-        // 4. Expand dimensions to shape [1, 224, 224, 3] for batch processing
-        const batchTensor = tensor.expandDims(0);
-
-        // 5. Run inference through CNN layers
-        const predictions = tfModel.predict(batchTensor);
-        const softmaxValues = predictions.dataSync();
-
-        // 6. Find index of highest confidence probability score
-        let maxIndex = 0;
-        let maxProb = softmaxValues[0];
-        for (let i = 1; i < softmaxValues.length; i++) {
-            if (softmaxValues[i] > maxProb) {
-                maxProb = softmaxValues[i];
-                maxIndex = i;
-            }
-        }
-
-        // 7. Extract class label accurately
-        const rawClassName = labelsMap[maxIndex] || "Tomato___healthy";
-        const parts = rawClassName.split('___');
-        
-        const cropName = parts[0].replace(/_/g, ' ');
-        const diseaseName = parts[1] ? parts[1].replace(/_/g, ' ') : "Healthy";
-        const confidenceVal = (maxProb * 100).toFixed(1);
-
-        return {
-            crop: cropName,
-            disease: diseaseName,
-            confidence: `${confidenceVal}%`,
-            symptoms: [
-                `Extracted visual features match ${cropName} ${diseaseName} pathology patterns.`,
-                `Pattern recognition confidence registered at ${confidenceVal}%.`
-            ],
-            treatment: diseaseName.toLowerCase().includes('healthy')
-                ? "No pathogen symptoms identified. Continue standard irrigation and plant maintenance."
-                : `Isolate infected foliage. Treat ${cropName} with targeted organic copper fungicide or appropriate pesticide.`
+// Convert image file to base64 string for API payload
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            const base64String = reader.result.split(',')[1];
+            resolve(base64String);
         };
+        reader.onerror = (error) => reject(error);
     });
 }
 
-// Offline PlantVillage Fallback Dataset Parser
-function generateOfflineDiagnosis(filename) {
-    const name = filename.toLowerCase();
-    
-    if (name.includes('tomato')) {
-        return {
-            crop: "Tomato",
-            disease: "Early Blight",
-            confidence: "94.2%",
-            symptoms: ["Concentric ring leaf spots", "Lower leaf yellowing", "Stem lesion spots"],
-            treatment: "Apply copper-based fungicides early. Ensure proper plant spacing to increase air circulation."
-        };
-    } else if (name.includes('potato')) {
-        return {
-            crop: "Potato",
-            disease: "Late Blight",
-            confidence: "92.8%",
-            symptoms: ["Dark water-soaked leaf spots", "White fungal growth under leaves"],
-            treatment: "Destroy infected vines immediately. Treat remaining crop with systemic chlorothalonil fungicide."
-        };
-    } else if (name.includes('corn') || name.includes('maize')) {
-        return {
-            crop: "Corn (Maize)",
-            disease: "Common Rust",
-            confidence: "95.1%",
-            symptoms: ["Golden-brown pustules on leaf surface", "Premature leaf drying"],
-            treatment: "Plant rust-resistant hybrids and apply foliar fungicides upon initial pustule detection."
-        };
+// Main Analyze Button Click Handler
+analyzeBtn.addEventListener('click', async () => {
+    const apiKey = apiKeyInput.value.trim();
+
+    if (!apiKey) {
+        alert("Please enter your Gemini API Key in the top header before running diagnosis!");
+        apiKeyInput.focus();
+        return;
     }
 
-    return {
-        crop: "Tomato",
-        disease: "Target Spot",
-        confidence: "89.6%",
-        symptoms: ["Small water-soaked pinpoint spots on foliage", "Necrotic brown lesions with yellow halos"],
-        treatment: "Prune lower foliage touching soil. Apply protective chlorothalonil or copper spray every 7-10 days."
+    if (!selectedFile) {
+        alert("Please upload an image of a leaf first.");
+        return;
+    }
+
+    // Show loading state
+    loadingSpinner.style.display = 'block';
+    resultContainer.style.display = 'none';
+
+    try {
+        const base64Image = await fileToBase64(selectedFile);
+        const diagnosis = await analyzeLeafWithGemini(apiKey, base64Image, selectedFile.type);
+        displayResults(diagnosis);
+    } catch (error) {
+        console.error("Diagnosis Error:", error);
+        alert(`API Analysis Failed: ${error.message}`);
+    } finally {
+        loadingSpinner.style.display = 'none';
+    }
+});
+
+// Call Google Gemini 1.5 Flash REST Endpoint directly
+// Call Google Gemini REST Endpoint directly
+async function analyzeLeafWithGemini(apiKey, base64Data, mimeType) {
+    // Model endpoints to attempt in fallback order
+    const candidateEndpoints = [
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`
+    ];
+
+    const promptText = `
+    You are an expert plant pathologist. Analyze this crop leaf image.
+    First, determine if the image shows a valid plant leaf. If not, return JSON stating crop: "Unknown", disease: "Not a Valid Leaf Image", confidence: "0%", symptoms: ["No clear leaf features detected"], treatment: "Please upload a clear, focused photo of a plant leaf."
+
+    If it is a valid leaf, provide:
+    1. Crop species name
+    2. Specific disease name or "Healthy"
+    3. Estimated confidence percentage (e.g. "94.5%")
+    4. Key visual symptoms as a JSON array of strings
+    5. Actionable organic and chemical treatment instructions
+
+    Respond STRICTLY in JSON format with no markdown wrappers or extra prose:
+    {
+        "crop": "Crop Name",
+        "disease": "Disease Name or Healthy",
+        "confidence": "95%",
+        "symptoms": ["Symptom 1", "Symptom 2"],
+        "treatment": "Treatment details..."
+    }
+    `;
+
+    const payload = {
+        contents: [{
+            parts: [
+                { text: promptText },
+                {
+                    inline_data: {
+                        mime_type: mimeType || "image/jpeg",
+                        data: base64Data
+                    }
+                }
+            ]
+        }]
     };
+
+    let lastErrorMessage = "";
+
+    for (const endpoint of candidateEndpoints) {
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const rawText = data.candidates[0].content.parts[0].text;
+                const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+                return JSON.parse(cleanJson);
+            } else {
+                const errData = await response.json();
+                lastErrorMessage = errData.error?.message || `HTTP ${response.status}`;
+            }
+        } catch (err) {
+            lastErrorMessage = err.message;
+        }
+    }
+
+    throw new Error(`API Error: ${lastErrorMessage}`);
 }
 
 // Display results in UI
 function displayResults(data) {
-    document.getElementById('resCrop').textContent = data.crop;
-    document.getElementById('resDisease').textContent = data.disease;
-    document.getElementById('resConfidence').textContent = `Confidence: ${data.confidence}`;
+    document.getElementById('resCrop').textContent = data.crop || "Unknown Crop";
+    document.getElementById('resDisease').textContent = data.disease || "Diagnosis Pending";
+    document.getElementById('resConfidence').textContent = `Confidence: ${data.confidence || 'N/A'}`;
 
     const symptomsList = document.getElementById('resSymptoms');
     symptomsList.innerHTML = '';
@@ -209,9 +180,13 @@ function displayResults(data) {
             li.textContent = sym;
             symptomsList.appendChild(li);
         });
+    } else {
+        const li = document.createElement('li');
+        li.textContent = data.symptoms || "No specific symptoms returned.";
+        symptomsList.appendChild(li);
     }
 
-    document.getElementById('resTreatment').textContent = data.treatment;
+    document.getElementById('resTreatment').textContent = data.treatment || "No specific treatment instructions provided.";
 
     resultContainer.style.display = 'block';
     resultContainer.scrollIntoView({ behavior: 'smooth' });
