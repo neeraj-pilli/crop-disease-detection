@@ -20,7 +20,7 @@
     <!-- Left Column: API Key & Image Upload -->
     <section class="panel input-panel" aria-label="API configuration and image upload">
       <div class="api-box">
-        <label for="apiKeyInput">Gemini API Key (optional for local filename check)</label>
+        <label for="apiKeyInput">Gemini API Key (optional for local dataset matching)</label>
         <div class="api-row">
           <input
             type="password"
@@ -32,16 +32,16 @@
           <button type="button" id="clearKeyBtn" class="btn btn-ghost">Clear</button>
         </div>
         <p id="apiStatus" class="helper-text" role="status" aria-live="polite">
-          No API key saved: will check uploaded files against the 8 crop dataset images locally.
+          No API key saved: will match against the 8-image dataset locally.
         </p>
       </div>
 
       <div class="upload-box">
-        <h2>Upload Crop Leaf Image</h2>
+        <h2>Upload Leaf Image</h2>
         <label for="imageUpload" id="dropzone" class="dropzone">
-          <input type="file" id="imageUpload" accept="image/png,image/jpeg,image/webp" hidden />
-          <span class="dropzone-title">Click or drag a crop leaf image here</span>
-          <span class="dropzone-sub">PNG, JPG, or WEBP — non-crop images will be marked as invalid</span>
+          <input type="file" id="imageUpload" accept="image/*" hidden />
+          <span class="dropzone-title">Click or drag an image here</span>
+          <span class="dropzone-sub">Select any image file to analyze and recognize</span>
         </label>
 
         <div id="previewWrapper" class="preview-wrapper hidden">
@@ -59,15 +59,8 @@
       <h2>Recognition Report</h2>
       <div id="statusBanner" class="status-banner hidden" role="status" aria-live="polite"></div>
 
-      <div id="invalidBox" class="invalid-box hidden" role="alert">
-        <h3>Invalid Image</h3>
-        <p id="invalidReason">
-          The uploaded file is not recognized as a valid crop leaf image from the dataset. Please upload a valid crop leaf image.
-        </p>
-      </div>
-
       <div id="emptyState" class="empty-state">
-        Upload a crop leaf image and click <strong>Recognize Disease</strong> to view the disease name, causes, symptoms, and precautions.
+        Upload an image and click <strong>Recognize Disease</strong> to view the crop disease name, causes, symptoms, and precautions.
       </div>
 
       <article id="resultCard" class="result-card hidden">
