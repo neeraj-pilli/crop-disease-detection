@@ -9,6 +9,7 @@
   --primary-hover: #165432;
   --accent: #e5f3eb;
   --danger-bg: #fdecec;
+  --danger-border: #f5b5b5;
   --danger-text: #991b1b;
   --focus-ring: rgba(30, 111, 67, 0.28);
 }
@@ -34,7 +35,7 @@ body {
 }
 
 .container {
-  max-width: 1180px;
+  max-width: 1120px;
   margin: 0 auto;
   padding: 0 20px;
 }
@@ -60,13 +61,13 @@ body {
 
 .main-grid {
   display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
+  grid-template-columns: 1fr 1fr;
   gap: 24px;
   padding-bottom: 44px;
   align-items: start;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 880px) {
   .main-grid {
     grid-template-columns: 1fr;
   }
@@ -85,8 +86,7 @@ body {
   margin-bottom: 10px;
 }
 
-.api-box,
-.upload-box {
+.api-box {
   padding-bottom: 18px;
   margin-bottom: 18px;
   border-bottom: 1px solid var(--border);
@@ -175,7 +175,7 @@ label {
   border: 2px dashed #99bfa2;
   background: var(--surface-alt);
   border-radius: 10px;
-  padding: 20px;
+  padding: 24px 20px;
   cursor: pointer;
   transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -208,7 +208,7 @@ label {
 
 .preview-wrapper img {
   width: 100%;
-  max-height: 240px;
+  max-height: 250px;
   object-fit: cover;
   border-radius: 8px;
   display: block;
@@ -225,66 +225,6 @@ label {
   word-break: break-word;
 }
 
-.sample-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-top: 10px;
-}
-
-@media (max-width: 520px) {
-  .sample-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.sample-card {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-  background: #fafcfb;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.12s ease, border-color 0.12s ease, background-color 0.12s ease;
-}
-
-.sample-card:hover {
-  transform: translateY(-1px);
-  border-color: var(--primary);
-}
-
-.sample-card.active {
-  border: 2px solid var(--primary);
-  background: var(--accent);
-}
-
-.sample-card img {
-  width: 100%;
-  height: 92px;
-  object-fit: cover;
-  display: block;
-}
-
-.sample-card-body {
-  padding: 8px 10px;
-}
-
-.sample-crop {
-  font-size: 0.74rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--primary);
-}
-
-.sample-disease {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text);
-}
-
 .status-banner {
   padding: 10px 12px;
   border-radius: 8px;
@@ -297,6 +237,24 @@ label {
 .status-banner.error {
   background: var(--danger-bg);
   color: var(--danger-text);
+}
+
+.invalid-box {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger-text);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.invalid-box h3 {
+  font-size: 1.05rem;
+  margin-bottom: 6px;
+}
+
+.invalid-box p {
+  font-size: 0.9rem;
 }
 
 .empty-state {
