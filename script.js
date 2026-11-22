@@ -1,6 +1,6 @@
 /**
- * Crop Disease Recognition Dataset & Controller
- * Contains ONLY the 8 crop disease samples generated across the conversation.
+ * Crop Disease Recognition Controller & 8-Image Dataset
+ * Restricted strictly to the 8 crop disease images generated in this session.
  */
 
 const CROP_DISEASE_DATASET = [
@@ -10,20 +10,20 @@ const CROP_DISEASE_DATASET = [
     imagePath: "./images/0d62cdf4.png",
     crop: "Tomato",
     disease: "Early Blight",
-    summary: "Fungal foliar disease of tomato leaves characterized by target-like concentric spots and yellowing tissue.",
+    summary: "Fungal leaf disease of tomato causing concentric target-like lesions and yellowing around affected spots.",
     causes: [
-      "Fungus Alternaria solani surviving in infected plant debris, soil, or seed.",
-      "Warm temperatures with high humidity, heavy dew, or overhead irrigation."
+      "Fungus Alternaria solani overwintering in infected crop debris, soil, or seed.",
+      "Warm temperatures paired with high humidity, dew, or overhead watering."
     ],
     symptoms: [
-      "Dark brown to black spots with concentric rings ('target' pattern) on leaves[cite: 6].",
-      "Yellowing margins and tissue around expanding lesions[cite: 6].",
-      "Lower, older leaves affected first, leading to premature leaf drop."
+      "Dark brown to black spots with concentric rings ('target' pattern) on leaf blades.",
+      "Yellowing margins and tissue surrounding expanding lesions.",
+      "Older lower leaves affected first, leading to premature leaf drop."
     ],
     precautions: [
       "Rotate crops away from tomatoes and potatoes for 2–3 years.",
-      "Water at the base of plants rather than wetting foliage and space plants for airflow.",
-      "Remove and destroy infected leaves and apply appropriate fungicides early if needed."
+      "Water at the soil base rather than wetting leaves and maintain plant spacing for airflow.",
+      "Prune infected lower leaves and apply labeled fungicides early when conditions favor spread."
     ]
   },
   {
@@ -32,20 +32,20 @@ const CROP_DISEASE_DATASET = [
     imagePath: "./images/afb0af22.png",
     crop: "Potato",
     disease: "Late Blight",
-    summary: "Fast-spreading oomycete disease capable of rapidly defoliating potato foliage and infecting tubers.",
+    summary: "Rapidly spreading oomycete disease of potato foliage that produces dark water-soaked lesions and pale borders.",
     causes: [
       "Oomycete pathogen Phytophthora infestans.",
-      "Cool, wet, and humid weather conditions that favor rapid spore spread."
+      "Cool, wet, and humid weather that accelerates spore production and dispersal."
     ],
     symptoms: [
-      "Dark, irregular water-soaked lesions on leaf blades and margins[cite: 7].",
-      "Pale or whitish fungal growth border around lesions under humid conditions[cite: 7].",
-      "Rapid browning and collapse of affected leaf tissue."
+      "Dark, irregular water-soaked lesions along leaf blades and margins.",
+      "Pale or whitish fungal growth border around lesions under damp conditions.",
+      "Fast browning and collapse of infected foliage."
     ],
     precautions: [
-      "Plant certified disease-free seed tubers and eliminate volunteer potato plants.",
-      "Avoid excessive moisture and overhead watering during cool, damp weather.",
-      "Monitor fields frequently and use protective fungicides before outbreaks establish."
+      "Plant certified disease-free seed tubers and remove volunteer potato plants.",
+      "Avoid excess leaf wetness and overhead irrigation during cool, rainy periods.",
+      "Scout crops regularly and apply preventive fungicides before disease builds up."
     ]
   },
   {
@@ -54,20 +54,20 @@ const CROP_DISEASE_DATASET = [
     imagePath: "./images/c6bc7eb7.png",
     crop: "Apple",
     disease: "Apple Scab",
-    summary: "Common fungal disease of apple leaves and fruit causing olive-brown lesions and leaf distortion.",
+    summary: "Common fungal disease of apple leaves producing olive-brown velvety spots and leaf distortion.",
     causes: [
-      "Ascomycete fungus Venturia inaequalis overwintering on fallen leaves.",
-      "Spring rain events combined with moderate temperatures dispersing spores."
+      "Ascomycete fungus Venturia inaequalis surviving on fallen leaves over winter.",
+      "Spring rain events with moderate temperatures releasing airborne/splash spores."
     ],
     symptoms: [
-      "Olive-green to dark olive-brown velvety spots on leaf surfaces[cite: 8].",
-      "Spots darkening and coalescing as lesions age, sometimes causing leaf curling or yellowing.",
-      "Premature leaf drop during heavy infections."
+      "Olive-green to dark olive-brown velvety spots on leaf surfaces.",
+      "Darkening and merging of older spots, sometimes with leaf curling or yellowing.",
+      "Early leaf drop when infections are severe."
     ],
     precautions: [
-      "Rake and destroy fallen autumn leaves to reduce overwintering inoculum.",
-      "Prune tree canopies to improve sunlight penetration and leaf drying.",
-      "Select scab-resistant cultivars and apply timed fungicide sprays during wet spring periods."
+      "Rake and dispose of fallen autumn leaves to reduce overwintering spores.",
+      "Prune canopies for better sunlight penetration and faster leaf drying.",
+      "Choose scab-resistant varieties and use timed fungicide applications during wet spring weather."
     ]
   },
   {
@@ -76,20 +76,20 @@ const CROP_DISEASE_DATASET = [
     imagePath: "./images/ab6757e7.png",
     crop: "Corn (Maize)",
     disease: "Northern Leaf Blight",
-    summary: "Fungal leaf disease of maize producing long, cigar-shaped lesions that reduce photosynthetic area.",
+    summary: "Fungal leaf disease of maize characterized by long, cigar-shaped lesions running along the blade.",
     causes: [
       "Fungus Exserohilum turcicum (syn. Setosphaeria turcica) persisting in corn residue.",
       "Moderate temperatures with prolonged leaf wetness or heavy dews."
     ],
     symptoms: [
-      "Long, elliptical or cigar-shaped gray-green to tan lesions along the leaf blade[cite: 9].",
-      "Lesions elongating parallel to leaf veins and turning darker or necrotic over time[cite: 9].",
-      "Severe blighting of upper leaves reducing grain fill."
+      "Long, elliptical or cigar-shaped gray-green to tan lesions along the leaf blade.",
+      "Lesions elongating parallel to leaf veins and turning darker or necrotic as they mature.",
+      "Blighting of upper leaves that reduces photosynthetic capacity."
     ],
     precautions: [
-      "Use hybrids with quantitative or race-specific resistance to Northern Leaf Blight.",
-      "Practice crop rotation and manage heavy surface crop residue where feasible.",
-      "Scout fields around silking and apply foliar fungicides if lesions reach upper leaves."
+      "Select maize hybrids with resistance to Northern Leaf Blight.",
+      "Use crop rotation and manage surface residue where practical.",
+      "Scout around silking and apply foliar fungicides if lesions spread to upper leaves."
     ]
   },
   {
@@ -98,20 +98,20 @@ const CROP_DISEASE_DATASET = [
     imagePath: "./images/a9652c6b.png",
     crop: "Grape",
     disease: "Black Rot",
-    summary: "Fungal disease affecting grape leaves, shoots, and berries, marked by tan leaf spots with dark specks.",
+    summary: "Fungal disease of grape leaves marked by circular tan lesions with darker borders and tiny black fruiting bodies.",
     causes: [
-      "Fungus Guignardia bidwellii (anamorph Phyllosticta ampelicida) overwintering on mummified fruit and canes.",
-      "Warm, wet weather promoting spore release and infection of young green tissue."
+      "Fungus Guignardia bidwellii (Phyllosticta ampelicida) overwintering on mummified berries and canes.",
+      "Warm, wet weather promoting spore release and infection of tender green tissue."
     ],
     symptoms: [
-      "Circular tan or reddish-brown leaf lesions with darker margins[cite: 10].",
-      "Tiny black fungal fruiting bodies (pycnidia) arranged in rings or clusters inside spots[cite: 10].",
-      "Progressive browning around lesion edges on the leaf."
+      "Circular tan or reddish-brown leaf spots bordered by darker margins.",
+      "Tiny black fungal fruiting bodies (pycnidia) visible inside the lesions.",
+      "Browning advancing around lesion edges across the leaf."
     ],
     precautions: [
-      "Remove mummified berries and prune out diseased canes during winter dormancy.",
-      "Train vines and manage canopy growth for good air circulation and rapid drying.",
-      "Apply protective fungicides from early shoot growth through fruit development."
+      "Remove mummified fruit and prune infected canes during dormant pruning.",
+      "Manage canopy growth and trellis training to improve airflow and drying.",
+      "Apply protective fungicides from early shoot growth through fruit set."
     ]
   },
   {
@@ -120,20 +120,20 @@ const CROP_DISEASE_DATASET = [
     imagePath: "./images/9d2a7ba2.png",
     crop: "Corn (Maize)",
     disease: "Common Rust",
-    summary: "Foliar rust of corn caused by windborne spores that form reddish-brown pustules on both leaf surfaces.",
+    summary: "Foliar rust disease of corn forming elongated, powdery reddish-brown pustules across leaf blades.",
     causes: [
-      "Fungus Puccinia sorghi carried on wind currents rather than overwintering in northern soils.",
+      "Fungus Puccinia sorghi carried by wind currents into cropping regions.",
       "Cool to moderate temperatures with high humidity and frequent dew."
     ],
     symptoms: [
-      "Small, elongated, powdery reddish-brown pustules scattered across the leaf blade[cite: 11].",
-      "Pustules rupturing the leaf epidermis and later turning dark brown to black as spores mature[cite: 11].",
-      "Yellowing or drying of heavily infected leaves."
+      "Small, elongated, powdery reddish-brown pustules scattered across the leaf blade.",
+      "Pustules breaking through the leaf surface and turning darker brown/black later in the cycle.",
+      "Yellowing or premature drying on heavily infected leaves."
     ],
     precautions: [
-      "Plant rust-resistant corn hybrids as the primary defense.",
-      "Inspect fields early in the season for pustule appearance on foliage.",
-      "Use fungicides if rust develops early on susceptible hybrids before tasseling."
+      "Plant rust-resistant corn hybrids as the primary control measure.",
+      "Inspect fields early for pustule development on leaves.",
+      "Use fungicides if rust appears early on susceptible hybrids prior to tasseling."
     ]
   },
   {
@@ -142,20 +142,20 @@ const CROP_DISEASE_DATASET = [
     imagePath: "./images/e217b948.png",
     crop: "Strawberry",
     disease: "Leaf Scorch",
-    summary: "Fungal leaf spot and scorch disease of strawberry that creates dark purple spots and scorched leaf margins.",
+    summary: "Fungal leaf disease of strawberry causing dark purple spots and drying brown ('scorched') margins.",
     causes: [
       "Fungus Diplocarpon earlianum overwintering on infected leaves and crowns.",
-      "Warm temperatures with rain splash or overhead irrigation."
+      "Warm weather combined with rain splash or overhead irrigation."
     ],
     symptoms: [
-      "Small dark purple to reddish-purple spots scattered across leaflet blades[cite: 12].",
-      "Spots enlarging and merging while leaf edges turn brown and dry ('scorched')[cite: 12].",
-      "Reduced plant vigor and yield under severe leaf loss."
+      "Small dark purple to reddish-purple spots on leaflet blades.",
+      "Spots enlarging and coalescing while leaf margins turn brown and dry out.",
+      "Reduced vigor and yield when severe leaf damage occurs."
     ],
     precautions: [
-      "Start with healthy, disease-free transplants and select less susceptible varieties.",
+      "Start with healthy transplants and choose less susceptible strawberry cultivars.",
       "Use drip irrigation instead of overhead sprinklers and space rows for airflow.",
-      "Renovate beds after harvest and remove old, diseased foliage."
+      "Remove old, diseased foliage after harvest."
     ]
   },
   {
@@ -164,25 +164,25 @@ const CROP_DISEASE_DATASET = [
     imagePath: "./images/dd77f197.png",
     crop: "Peach",
     disease: "Bacterial Spot",
-    summary: "Bacterial disease of stone fruit leaves causing dark angular lesions and shot-hole perforations.",
+    summary: "Bacterial leaf disease of peach causing dark angular lesions and shot-hole perforations.",
     causes: [
       "Bacterium Xanthomonas arboricola pv. pruni overwintering in twigs and buds.",
-      "Warm weather accompanied by wind-driven rain and heavy dews."
+      "Warm temperatures accompanied by wind-driven rain and heavy dews."
     ],
     symptoms: [
-      "Small dark purple to black angular or water-soaked spots on leaves[cite: 13].",
-      "Yellow halos around lesions and dead tissue dropping out to leave 'shot-holes'[cite: 13].",
-      "Premature yellowing and defoliation in moderate to severe cases."
+      "Small dark purple to black angular or water-soaked spots on leaves.",
+      "Yellowing around lesions and dead centers dropping out to leave 'shot-holes'.",
+      "Premature yellowing and leaf drop under moderate to heavy infection."
     ],
     precautions: [
-      "Plant adapted, less susceptible peach varieties in high-risk locations.",
-      "Avoid overhead irrigation and maintain balanced tree nutrition without excess nitrogen.",
-      "Follow local extension recommendations for spring bactericide/copper applications."
+      "Select adapted, less susceptible peach varieties for high-risk areas.",
+      "Avoid overhead irrigation and keep nitrogen fertilization balanced.",
+      "Follow local agricultural extension guidance for spring bactericide sprays."
     ]
   }
 ];
 
-const GEMINI_MODEL = "gemini-3.5-flash-lite"; // Update endpoint string if needed per Google AI Studio model docs
+const GEMINI_MODEL = "gemini-3.5-flash-lite";
 const SESSION_KEY_STORAGE = "crop_disease_gemini_api_key";
 
 const els = {
@@ -190,6 +190,7 @@ const els = {
   saveKeyBtn: document.getElementById("saveKeyBtn"),
   clearKeyBtn: document.getElementById("clearKeyBtn"),
   apiStatus: document.getElementById("apiStatus"),
+  dropzone: document.getElementById("dropzone"),
   imageUpload: document.getElementById("imageUpload"),
   previewWrapper: document.getElementById("previewWrapper"),
   previewImage: document.getElementById("previewImage"),
@@ -211,23 +212,43 @@ const els = {
 
 let currentFile = null;
 let currentSampleId = null;
+let activeObjectUrl = null;
 
 function init() {
-  const savedKey = sessionStorage.getItem(SESSION_KEY_STORAGE);
-  if (savedKey) {
-    els.apiKeyInput.value = savedKey;
+  try {
+    const savedKey = sessionStorage.getItem(SESSION_KEY_STORAGE);
+    if (savedKey) {
+      els.apiKeyInput.value = savedKey;
+    }
+  } catch {
+    // Ignore storage access errors in restricted browser contexts
   }
   updateApiStatus();
   renderSampleGallery();
   bindEvents();
 }
 
+function getApiKey() {
+  try {
+    return (sessionStorage.getItem(SESSION_KEY_STORAGE) || els.apiKeyInput.value || "").trim();
+  } catch {
+    return (els.apiKeyInput.value || "").trim();
+  }
+}
+
 function updateApiStatus() {
-  const key = sessionStorage.getItem(SESSION_KEY_STORAGE) || els.apiKeyInput.value.trim();
+  const key = getApiKey();
   if (key) {
     els.apiStatus.textContent = `Gemini API key active in session (${GEMINI_MODEL}).`;
   } else {
     els.apiStatus.textContent = "No API key saved: will match against the 8-image dataset locally.";
+  }
+}
+
+function releaseObjectUrl() {
+  if (activeObjectUrl) {
+    URL.revokeObjectURL(activeObjectUrl);
+    activeObjectUrl = null;
   }
 }
 
@@ -238,13 +259,25 @@ function renderSampleGallery() {
     card.type = "button";
     card.className = "sample-card";
     card.dataset.id = item.id;
-    card.innerHTML = `
-      <img src="${item.imagePath}" alt="${item.crop} - ${item.disease}" />
-      <div class="sample-card-body">
-        <div class="sample-crop">${item.crop}</div>
-        <div class="sample-disease">${item.disease}</div>
-      </div>
-    `;
+    card.setAttribute("aria-pressed", "false");
+
+    const img = document.createElement("img");
+    img.src = item.imagePath;
+    img.alt = `${item.crop} — ${item.disease}`;
+
+    const body = document.createElement("div");
+    body.className = "sample-card-body";
+
+    const cropEl = document.createElement("div");
+    cropEl.className = "sample-crop";
+    cropEl.textContent = item.crop;
+
+    const diseaseEl = document.createElement("div");
+    diseaseEl.className = "sample-disease";
+    diseaseEl.textContent = item.disease;
+
+    body.append(cropEl, diseaseEl);
+    card.append(img, body);
     card.addEventListener("click", () => selectSample(item));
     els.sampleGallery.appendChild(card);
   });
@@ -252,7 +285,9 @@ function renderSampleGallery() {
 
 function setActiveSampleCard(id) {
   document.querySelectorAll(".sample-card").forEach((card) => {
-    card.classList.toggle("active", card.dataset.id === id);
+    const isSelected = card.dataset.id === id;
+    card.classList.toggle("active", isSelected);
+    card.setAttribute("aria-pressed", String(isSelected));
   });
 }
 
@@ -260,6 +295,7 @@ function setStatus(message, isError = false) {
   if (!message) {
     els.statusBanner.classList.add("hidden");
     els.statusBanner.textContent = "";
+    els.statusBanner.classList.remove("error");
     return;
   }
   els.statusBanner.textContent = message;
@@ -267,32 +303,46 @@ function setStatus(message, isError = false) {
   els.statusBanner.classList.remove("hidden");
 }
 
-async function selectSample(item) {
+function selectSample(item) {
+  releaseObjectUrl();
+  els.imageUpload.value = "";
   currentSampleId = item.id;
   currentFile = null;
+
   setActiveSampleCard(item.id);
   els.previewImage.src = item.imagePath;
+  els.previewImage.alt = `${item.crop} ${item.disease} sample preview`;
   els.previewName.textContent = `${item.imageFile} (${item.crop} — ${item.disease})`;
   els.previewWrapper.classList.remove("hidden");
   setStatus("");
 
-  // Display exact dataset record immediately for reliable demo recognition
-  renderResult(item, "Exact Match", "Loaded from the 8-image dataset definition.");
+  renderResult(item, "Dataset Match", "Loaded directly from the 8-image crop disease dataset.");
 }
 
-function handleFileUpload(event) {
-  const file = event.target.files?.[0];
-  if (!file) return;
+function acceptUploadedFile(file) {
+  if (!file || !file.type.startsWith("image/")) {
+    setStatus("Please choose a valid PNG, JPG, or WEBP image file.", true);
+    return;
+  }
 
+  releaseObjectUrl();
   currentFile = file;
   currentSampleId = null;
   setActiveSampleCard(null);
 
-  const objectUrl = URL.createObjectURL(file);
-  els.previewImage.src = objectUrl;
+  activeObjectUrl = URL.createObjectURL(file);
+  els.previewImage.src = activeObjectUrl;
+  els.previewImage.alt = `Uploaded leaf image: ${file.name}`;
   els.previewName.textContent = file.name;
   els.previewWrapper.classList.remove("hidden");
   setStatus("");
+}
+
+function handleFileInputChange(event) {
+  const file = event.target.files?.[0];
+  if (file) {
+    acceptUploadedFile(file);
+  }
 }
 
 function fileToBase64(file) {
@@ -301,6 +351,10 @@ function fileToBase64(file) {
     reader.onload = () => {
       const result = String(reader.result || "");
       const base64 = result.includes(",") ? result.split(",")[1] : result;
+      if (!base64) {
+        reject(new Error("Empty image data."));
+        return;
+      }
       resolve(base64);
     };
     reader.onerror = () => reject(new Error("Could not read image file."));
@@ -312,7 +366,11 @@ function matchLocalDatasetByFilename(filename) {
   const cleanName = (filename || "").toLowerCase();
   const byFile = CROP_DISEASE_DATASET.find((item) => cleanName.includes(item.imageFile.toLowerCase()));
   if (byFile) {
-    return { record: byFile, confidence: "Filename Match", note: "Matched by dataset image filename." };
+    return {
+      record: byFile,
+      confidence: "Filename Match",
+      note: "Matched by dataset filename in the 8-image dataset."
+    };
   }
 
   const tokens = cleanName.replace(/[^a-z0-9]+/g, " ").trim().split(/\s+/).filter(Boolean);
@@ -335,23 +393,39 @@ function matchLocalDatasetByFilename(filename) {
 
   return {
     record: bestRecord,
-    confidence: bestScore > 0 ? "Keyword Match" : "Fallback Sample",
-    note: "No Gemini API key provided; matched against the 8-image dataset locally."
+    confidence: bestScore > 0 ? "Keyword Match" : "Default Match",
+    note: "Matched locally against the 8-image dataset (no API key used)."
   };
+}
+
+function extractJsonObject(rawText) {
+  const cleaned = rawText
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/```\s*$/i, "")
+    .trim();
+
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+  if (start === -1 || end === -1 || end <= start) {
+    throw new Error("Model response did not contain a valid JSON object.");
+  }
+  return JSON.parse(cleaned.slice(start, end + 1));
 }
 
 async function recognizeWithGemini(file, apiKey) {
   const base64Data = await fileToBase64(file);
-  const allowedIds = CROP_DISEASE_DATASET.map((d) => `${d.id} (${d.crop} - ${d.disease})`).join(", ");
+  const allowedIds = CROP_DISEASE_DATASET.map((d) => d.id);
+  const catalogSummary = CROP_DISEASE_DATASET.map((d) => `- ${d.id}: ${d.crop} — ${d.disease}`).join("\n");
 
   const prompt = [
-    "You are a plant pathology assistant for a college crop disease recognition project.",
-    `Classify the uploaded leaf image strictly into one of these 8 dataset entries: ${allowedIds}.`,
-    "Respond ONLY with valid JSON in this exact format:",
-    '{"matchedId":"<one of the 8 ids>","confidence":"High | Medium | Low","reason":"brief visual reason"}'
+    "You are a plant pathology classifier for a crop disease recognition website.",
+    "Match the uploaded leaf image strictly to ONE of the following 8 dataset entries:",
+    catalogSummary,
+    'Return ONLY JSON matching: {"matchedId":"<one of the 8 ids>","confidence":"High | Medium | Low","reason":"short visual explanation"}'
   ].join("\n");
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const endpoint = `[https://generativelanguage.googleapis.com/v1beta/models/$](https://generativelanguage.googleapis.com/v1beta/models/$){encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
   const response = await fetch(endpoint, {
     method: "POST",
@@ -369,23 +443,38 @@ async function recognizeWithGemini(file, apiKey) {
             }
           ]
         }
-      ]
+      ],
+      generationConfig: {
+        temperature: 0.1,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            matchedId: { type: "STRING", enum: allowedIds },
+            confidence: { type: "STRING" },
+            reason: { type: "STRING" }
+          },
+          required: ["matchedId", "confidence", "reason"]
+        }
+      }
     })
   });
 
   if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Gemini API error (${response.status}): ${errText}`);
+    let detail = `HTTP ${response.status}`;
+    try {
+      const errJson = await response.json();
+      detail = errJson?.error?.message || detail;
+    } catch {
+      // Keep status fallback
+    }
+    throw new Error(detail);
   }
 
   const data = await response.json();
   const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    throw new Error("Model response was not valid JSON.");
-  }
+  const parsed = extractJsonObject(rawText);
 
-  const parsed = JSON.parse(jsonMatch[0]);
   const matched =
     CROP_DISEASE_DATASET.find((item) => item.id === parsed.matchedId) ||
     matchLocalDatasetByFilename(file.name).record;
@@ -393,7 +482,9 @@ async function recognizeWithGemini(file, apiKey) {
   return {
     record: matched,
     confidence: parsed.confidence || "AI Match",
-    note: parsed.reason ? `Gemini (${GEMINI_MODEL}): ${parsed.reason}` : `Classified via Gemini (${GEMINI_MODEL}).`
+    note: parsed.reason
+      ? `Gemini (${GEMINI_MODEL}): ${parsed.reason}`
+      : `Classified via Gemini (${GEMINI_MODEL}) within the 8-image dataset.`
   };
 }
 
@@ -419,25 +510,25 @@ function renderResult(record, confidenceLabel, modeNote) {
   renderList(els.symptomsList, record.symptoms);
   renderList(els.precautionsList, record.precautions);
 
-  els.analysisModeNote.textContent = `${modeNote} Dataset file: ${record.imageFile}.`;
+  els.analysisModeNote.textContent = `${modeNote} Dataset image: ${record.imageFile}.`;
 }
 
 async function handleAnalyze() {
   if (currentSampleId) {
     const sample = CROP_DISEASE_DATASET.find((s) => s.id === currentSampleId);
     if (sample) {
-      renderResult(sample, "Exact Match", "Loaded directly from the 8-image dataset.");
+      renderResult(sample, "Dataset Match", "Loaded from the 8-image dataset.");
       setStatus("Recognition complete.");
     }
     return;
   }
 
   if (!currentFile) {
-    setStatus("Please select one of the 8 sample images or upload an image first.", true);
+    setStatus("Please select one of the 8 sample leaf images or upload an image first.", true);
     return;
   }
 
-  const apiKey = sessionStorage.getItem(SESSION_KEY_STORAGE) || els.apiKeyInput.value.trim();
+  const apiKey = getApiKey();
   els.analyzeBtn.disabled = true;
   setStatus("Analyzing leaf image...");
 
@@ -453,8 +544,9 @@ async function handleAnalyze() {
     }
   } catch (err) {
     const fallback = matchLocalDatasetByFilename(currentFile.name);
-    renderResult(fallback.record, fallback.confidence, `${fallback.note} (Fallback after API error: ${err.message})`);
-    setStatus(`API request failed; showed local dataset match (${err.message}).`, true);
+    const message = err instanceof Error ? err.message : "Unknown error";
+    renderResult(fallback.record, fallback.confidence, `${fallback.note} Fallback used due to API error: ${message}.`);
+    setStatus(`Gemini API unavailable (${message}); showed local 8-image dataset match.`, true);
   } finally {
     els.analyzeBtn.disabled = false;
   }
@@ -463,22 +555,54 @@ async function handleAnalyze() {
 function bindEvents() {
   els.saveKeyBtn.addEventListener("click", () => {
     const val = els.apiKeyInput.value.trim();
-    if (val) {
-      sessionStorage.setItem(SESSION_KEY_STORAGE, val);
-    } else {
-      sessionStorage.removeItem(SESSION_KEY_STORAGE);
+    try {
+      if (val) {
+        sessionStorage.setItem(SESSION_KEY_STORAGE, val);
+      } else {
+        sessionStorage.removeItem(SESSION_KEY_STORAGE);
+      }
+    } catch {
+      // Ignore storage access errors
     }
     updateApiStatus();
   });
 
   els.clearKeyBtn.addEventListener("click", () => {
     els.apiKeyInput.value = "";
-    sessionStorage.removeItem(SESSION_KEY_STORAGE);
+    try {
+      sessionStorage.removeItem(SESSION_KEY_STORAGE);
+    } catch {
+      // Ignore storage access errors
+    }
     updateApiStatus();
   });
 
-  els.imageUpload.addEventListener("change", handleFileUpload);
+  els.imageUpload.addEventListener("change", handleFileInputChange);
+
+  ["dragenter", "dragover"].forEach((eventName) => {
+    els.dropzone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      els.dropzone.classList.add("drag-over");
+    });
+  });
+
+  ["dragleave", "drop"].forEach((eventName) => {
+    els.dropzone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      els.dropzone.classList.remove("drag-over");
+    });
+  });
+
+  els.dropzone.addEventListener("drop", (event) => {
+    const file = event.dataTransfer?.files?.[0];
+    if (file) {
+      acceptUploadedFile(file);
+    }
+  });
+
   els.analyzeBtn.addEventListener("click", handleAnalyze);
+
+  window.addEventListener("beforeunload", releaseObjectUrl);
 }
 
 init();
