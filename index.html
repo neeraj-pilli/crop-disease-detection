@@ -1,91 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crop Disease Detection AI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crop Disease Recognition — CS Project</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <header class="site-header">
+    <div class="container">
+      <h1>Crop Disease Recognition</h1>
+      <p class="subtitle">
+        Leaf disease identification with causes, symptoms, and precautions using our 8-image dataset
+      </p>
+    </div>
+  </header>
 
-    <header>
-        <div class="logo-area">
-            <div class="logo-icon">
-                <i class="fa-solid fa-seedling"></i>
-            </div>
-            <div class="logo-text">
-                <h1>Crop Disease Detection AI</h1>
-            </div>
+  <main class="container main-grid">
+    <!-- Left Column: API Key, Upload & 8-Image Dataset -->
+    <section class="panel input-panel">
+      <div class="api-box">
+        <label for="apiKeyInput">Gemini API Key (optional for local dataset demo)</label>
+        <div class="api-row">
+          <input
+            type="password"
+            id="apiKeyInput"
+            placeholder="AIzaSy... (stored in sessionStorage only)"
+            autocomplete="off"
+          />
+          <button type="button" id="saveKeyBtn" class="btn btn-secondary">Save</button>
+          <button type="button" id="clearKeyBtn" class="btn btn-ghost">Clear</button>
         </div>
-        <div class="api-key-container">
-            <input type="password" id="apiKeyInput" placeholder="Enter Gemini API Key">
+        <p id="apiStatus" class="helper-text">
+          No API key saved: will match against the 8-image dataset locally.
+        </p>
+      </div>
+
+      <div class="upload-box">
+        <h2>Upload Leaf Image</h2>
+        <label for="imageUpload" class="dropzone">
+          <input type="file" id="imageUpload" accept="image/png,image/jpeg,image/webp" hidden />
+          <span class="dropzone-title">Choose a leaf image from your device</span>
+          <span class="dropzone-sub">PNG, JPG, or WEBP (best results with the 8 generated test images)</span>
+        </label>
+
+        <div id="previewWrapper" class="preview-wrapper hidden">
+          <img id="previewImage" alt="Selected leaf preview" />
+          <div class="preview-meta">
+            <span id="previewName"></span>
+            <button type="button" id="analyzeBtn" class="btn btn-primary">Recognize Disease</button>
+          </div>
         </div>
-    </header>
+      </div>
 
-    <main>
-        <div class="hero-banner">
-            <h2>AI-Powered Crop Disease Detection</h2>
-            <p>Upload a clear photo of any crop leaf to instantly identify diseases, symptoms, and remedies using Gemini Vision AI.</p>
+      <div class="dataset-box">
+        <h2>8-Image Dataset Samples</h2>
+        <p class="helper-text">Click a sample to preview and recognize from the 8 generated images:</p>
+        <div id="sampleGallery" class="sample-grid"></div>
+      </div>
+    </section>
+
+    <!-- Right Column: Recognition Output -->
+    <section class="panel result-panel">
+      <h2>Recognition Report</h2>
+      <div id="statusBanner" class="status-banner hidden"></div>
+
+      <div id="emptyState" class="empty-state">
+        Select one of the 8 sample leaf images or upload an image to view the disease name, causes, symptoms, and precautions.
+      </div>
+
+      <article id="resultCard" class="result-card hidden">
+        <div class="result-header">
+          <div>
+            <span id="cropBadge" class="badge"></span>
+            <h3 id="diseaseTitle"></h3>
+          </div>
+          <div class="confidence-box">
+            <span class="confidence-label">Match Confidence</span>
+            <strong id="confidenceValue"></strong>
+          </div>
         </div>
 
-        <div class="upload-card" id="dropZone" onclick="document.getElementById('fileInput').click()">
-            <div class="upload-icon">
-                <i class="fa-solid fa-cloud-arrow-up"></i>
-            </div>
-            <h3>Click to upload or drag & drop leaf image</h3>
-            <p>Supports JPG, PNG, WEBP from mobile camera or gallery</p>
-            <button class="btn" type="button">
-                <i class="fa-solid fa-camera"></i> Select Leaf Image
-            </button>
-            <input type="file" id="fileInput" accept="image/*">
+        <p id="summaryText" class="summary-text"></p>
+
+        <div class="info-block">
+          <h4>Causes</h4>
+          <ul id="causesList"></ul>
         </div>
 
-        <!-- Preview Section -->
-        <div class="preview-section" id="previewSection" style="display: none;">
-            <div class="preview-img-box">
-                <img id="imagePreview" src="" alt="Leaf preview">
-            </div>
-            <div class="preview-info">
-                <h4 id="fileName">leaf_sample.jpg</h4>
-                <p>Image loaded successfully. Ready for AI pattern analysis.</p>
-                <button class="btn" id="analyzeBtn" style="margin-top: 10px;">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Run AI Diagnosis
-                </button>
-            </div>
+        <div class="info-block">
+          <h4>Symptoms</h4>
+          <ul id="symptomsList"></ul>
         </div>
 
-        <!-- Loading State -->
-        <div class="loading-spinner" id="loadingSpinner" style="display: none;">
-            <div class="spinner"></div>
-            <h4>Analyzing Leaf Pixels & Pathology Patterns...</h4>
-            <p>Communicating with Gemini Vision AI to identify pathology markers.</p>
+        <div class="info-block">
+          <h4>Precautions &amp; Management</h4>
+          <ul id="precautionsList"></ul>
         </div>
 
-        <!-- Results Display -->
-        <div class="result-container" id="resultContainer" style="display: none;">
-            <div class="result-header">
-                <div class="disease-title">
-                    <span class="crop-badge" id="resCrop">Crop Name</span>
-                    <h3 id="resDisease">Disease Name</h3>
-                </div>
-                <div class="confidence-badge" id="resConfidence">Confidence: 0%</div>
-            </div>
+        <p id="analysisModeNote" class="mode-note"></p>
+      </article>
+    </section>
+  </main>
 
-            <div class="result-grid">
-                <div class="result-box">
-                    <h4><i class="fa-solid fa-stethoscope" style="color: #10b981;"></i> Symptoms Identified</h4>
-                    <ul id="resSymptoms"></ul>
-                </div>
-                <div class="result-box">
-                    <h4><i class="fa-solid fa-shield-halved" style="color: #10b981;"></i> Treatment & Prevention</h4>
-                    <p id="resTreatment"></p>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
