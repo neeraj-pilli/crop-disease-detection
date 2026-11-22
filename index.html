@@ -11,16 +11,16 @@
     <div class="container">
       <h1>Crop Disease Recognition</h1>
       <p class="subtitle">
-        Identify crop diseases and inspect causes, symptoms, and precautions from our 8-image dataset
+        Upload a crop leaf image to identify the disease, causes, symptoms, and precautions
       </p>
     </div>
   </header>
 
   <main class="container main-grid">
-    <!-- Left Column: API Key, Upload & 8-Image Dataset -->
-    <section class="panel input-panel" aria-label="Image input and dataset">
+    <!-- Left Column: API Key & Image Upload -->
+    <section class="panel input-panel" aria-label="API configuration and image upload">
       <div class="api-box">
-        <label for="apiKeyInput">Gemini API Key (optional for local dataset matching)</label>
+        <label for="apiKeyInput">Gemini API Key (optional for local filename check)</label>
         <div class="api-row">
           <input
             type="password"
@@ -32,31 +32,25 @@
           <button type="button" id="clearKeyBtn" class="btn btn-ghost">Clear</button>
         </div>
         <p id="apiStatus" class="helper-text" role="status" aria-live="polite">
-          No API key saved: will match against the 8-image dataset locally.
+          No API key saved: will check uploaded files against the 8 crop dataset images locally.
         </p>
       </div>
 
       <div class="upload-box">
-        <h2>Upload Leaf Image</h2>
+        <h2>Upload Crop Leaf Image</h2>
         <label for="imageUpload" id="dropzone" class="dropzone">
           <input type="file" id="imageUpload" accept="image/png,image/jpeg,image/webp" hidden />
-          <span class="dropzone-title">Click or drag a leaf image here</span>
-          <span class="dropzone-sub">PNG, JPG, or WEBP (best with the 8 generated test images)</span>
+          <span class="dropzone-title">Click or drag a crop leaf image here</span>
+          <span class="dropzone-sub">PNG, JPG, or WEBP — non-crop images will be marked as invalid</span>
         </label>
 
         <div id="previewWrapper" class="preview-wrapper hidden">
-          <img id="previewImage" alt="Selected leaf preview" />
+          <img id="previewImage" alt="Uploaded image preview" />
           <div class="preview-meta">
             <span id="previewName"></span>
             <button type="button" id="analyzeBtn" class="btn btn-primary">Recognize Disease</button>
           </div>
         </div>
-      </div>
-
-      <div class="dataset-box">
-        <h2>8-Image Dataset Samples</h2>
-        <p class="helper-text">Select a sample from the 8 generated leaf images:</p>
-        <div id="sampleGallery" class="sample-grid"></div>
       </div>
     </section>
 
@@ -65,8 +59,15 @@
       <h2>Recognition Report</h2>
       <div id="statusBanner" class="status-banner hidden" role="status" aria-live="polite"></div>
 
+      <div id="invalidBox" class="invalid-box hidden" role="alert">
+        <h3>Invalid Image</h3>
+        <p id="invalidReason">
+          The uploaded file is not recognized as a valid crop leaf image from the dataset. Please upload a valid crop leaf image.
+        </p>
+      </div>
+
       <div id="emptyState" class="empty-state">
-        Select one of the 8 sample leaf images or upload a leaf image to view the crop disease name, causes, symptoms, and precautions.
+        Upload a crop leaf image and click <strong>Recognize Disease</strong> to view the disease name, causes, symptoms, and precautions.
       </div>
 
       <article id="resultCard" class="result-card hidden">
