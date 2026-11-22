@@ -1,6 +1,6 @@
 /**
  * Crop Disease Recognition Controller & 8-Image Dataset
- * Uses ONLY the 8 crop disease images generated in this session and rejects non-crop images as invalid.
+ * Uses ONLY the 8 crop disease images generated in this session and always renders the report.
  */
 
 const CROP_DISEASE_DATASET = [
@@ -174,8 +174,7 @@ const CROP_DISEASE_DATASET = [
   }
 ];
 
-const ALLOWED_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"];
-const GEMINI_MODEL = "gemini-3.5-flash-lite";
+const GEMINI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
 const SESSION_KEY_STORAGE = "crop_disease_gemini_api_key";
 
 const els = {
@@ -190,8 +189,6 @@ const els = {
   previewName: document.getElementById("previewName"),
   analyzeBtn: document.getElementById("analyzeBtn"),
   statusBanner: document.getElementById("statusBanner"),
-  invalidBox: document.getElementById("invalidBox"),
-  invalidReason: document.getElementById("invalidReason"),
   emptyState: document.getElementById("emptyState"),
   resultCard: document.getElementById("resultCard"),
   cropBadge: document.getElementById("cropBadge"),
@@ -231,9 +228,9 @@ function getApiKey() {
 function updateApiStatus() {
   const key = getApiKey();
   if (key) {
-    els.apiStatus.textContent = `Gemini API key active (${GEMINI_MODEL}): validates crop leaf images against the 8-image dataset.`;
+    els.apiStatus.textContent = `Gemini API key active (${GEMINI_MODELS[0]}): matches uploaded images to the 8-image dataset.`;
   } else {
-    els.apiStatus.textContent = "No API key saved: will check uploaded files against the 8 crop dataset images locally.";
+    els.apiStatus.textContent = "No API key saved: will match uploaded images against the 8-image dataset locally.";
   }
 }
 
@@ -256,27 +253,8 @@ function setStatus(message, isError = false) {
   els.statusBanner.classList.remove("hidden");
 }
 
-function resetReportViews() {
-  els.invalidBox.classList.add("hidden");
-  els.resultCard.classList.add("hidden");
-  els.emptyState.classList.add("hidden");
-}
-
-function showInvalidImage(reason) {
-  resetReportViews();
-  els.invalidReason.textContent = reason;
-  els.invalidBox.classList.remove("hidden");
-  setStatus("Invalid image: uploaded file is not a recognized crop leaf image.", true);
-}
-
 function acceptUploadedFile(file) {
-  if (!file || !ALLOWED_MIME_TYPES.includes(file.type)) {
-    releaseObjectUrl();
-    currentFile = null;
-    els.previewWrapper.classList.add("hidden");
-    showInvalidImage("Unsupported file type. Please upload a PNG, JPG, or WEBP crop leaf image.");
-    return;
-  }
+  if (!file) return;
 
   releaseObjectUrl();
   currentFile = file;
@@ -285,9 +263,6 @@ function acceptUploadedFile(file) {
   els.previewImage.alt = `Uploaded image: ${file.name}`;
   els.previewName.textContent = file.name;
   els.previewWrapper.classList.remove("hidden");
-
-  resetReportViews();
-  els.emptyState.classList.remove("hidden");
   setStatus("");
 }
 
@@ -315,27 +290,44 @@ function fileToBase64(file) {
   });
 }
 
-function matchLocalDataset(filename) {
+function matchLocalDatasetByFilename(filename) {
   const cleanName = (filename || "").toLowerCase();
-  const matched = CROP_DISEASE_DATASET.find((item) => cleanName.includes(item.imageFile.toLowerCase()));
-  if (!matched) {
+  const byFile = CROP_DISEASE_DATASET.find((item) => cleanName.includes(item.imageFile.toLowerCase()));
+  if (byFile) {
     return {
-      isValidCropImage: false,
-      reason:
-        "Invalid image: this file does not match any of the 8 crop leaf disease images in the project dataset. Upload one of the valid crop leaf images or add a Gemini API key for visual crop verification."
+      record: byFile,
+      confidence: "Filename Match",
+      note: "Matched by dataset image filename in the 8-image dataset."
     };
   }
 
+  const tokens = cleanName.replace(/[^a-z0-9]+/g, " ").trim().split(/\s+/).filter(Boolean);
+  let bestRecord = CROP_DISEASE_DATASET[0];
+  let bestScore = -1;
+
+  for (const item of CROP_DISEASE_DATASET) {
+    const haystack = `${item.crop} ${item.disease} ${item.symptoms.join(" ")}`.toLowerCase();
+    let score = 0;
+    for (const token of tokens) {
+      if (token.length > 2 && haystack.includes(token)) {
+        score += 1;
+      }
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestRecord = item;
+    }
+  }
+
   return {
-    isValidCropImage: true,
-    record: matched,
-    confidence: "Dataset Match",
-    note: "Verified against the 8-image crop disease dataset locally."
+    record: bestRecord,
+    confidence: bestScore > 0 ? "Keyword Match" : "Dataset Match",
+    note: "Matched against the 8-image crop disease dataset locally."
   };
 }
 
-function extractJsonObject(rawText) {
-  const cleaned = rawText
+function parseMatchedIdFromText(rawText) {
+  const cleaned = String(rawText || "")
     .replace(/^```json\s*/i, "")
     .replace(/^```\s*/i, "")
     .replace(/```\s*$/i, "")
@@ -343,27 +335,44 @@ function extractJsonObject(rawText) {
 
   const start = cleaned.indexOf("{");
   const end = cleaned.lastIndexOf("}");
-  if (start === -1 || end === -1 || end <= start) {
-    throw new Error("Model response did not contain valid JSON.");
+  if (start !== -1 && end !== -1 && end > start) {
+    try {
+      const parsed = JSON.parse(cleaned.slice(start, end + 1));
+      if (parsed && typeof parsed.matchedId === "string") {
+        return {
+          matchedId: parsed.matchedId.trim(),
+          confidence: parsed.confidence || "AI Match",
+          reason: parsed.reason || ""
+        };
+      }
+    } catch {
+      // Fall through to text scan
+    }
   }
-  return JSON.parse(cleaned.slice(start, end + 1));
+
+  const lower = cleaned.toLowerCase();
+  const found = CROP_DISEASE_DATASET.find(
+    (d) => lower.includes(d.id.toLowerCase()) || lower.includes(d.disease.toLowerCase())
+  );
+  return {
+    matchedId: found ? found.id : "",
+    confidence: "AI Match",
+    reason: cleaned.slice(0, 180)
+  };
 }
 
-async function recognizeWithGemini(file, apiKey) {
+async function callGeminiModel(modelName, file, apiKey) {
   const base64Data = await fileToBase64(file);
-  const allowedIds = CROP_DISEASE_DATASET.map((d) => d.id);
   const catalogSummary = CROP_DISEASE_DATASET.map((d) => `- ${d.id}: ${d.crop} — ${d.disease}`).join("\n");
 
   const prompt = [
-    "You are a plant pathology image verifier for a crop disease recognition website.",
-    "Step 1: Determine whether the uploaded image is actually a plant/crop leaf showing one of the 8 crop diseases below.",
-    "If the image shows people, animals, vehicles, indoor scenes, text/screenshots, random objects, or crops/diseases NOT in this 8-item list, set isCropImage to false and matchedId to 'none'.",
-    "Allowed 8 dataset entries:",
+    "You are a plant pathology assistant for a crop disease recognition website.",
+    "Match the uploaded image strictly to ONE of these 8 dataset entries:",
     catalogSummary,
-    'Return ONLY JSON matching: {"isCropImage":boolean,"matchedId":"<one of the 8 ids or none>","confidence":"High | Medium | Low","reason":"short explanation"}'
+    'Return ONLY JSON: {"matchedId":"<one of the 8 ids>","confidence":"High | Medium | Low","reason":"short visual reason"}'
   ].join("\n");
 
-  const endpoint = `[https://generativelanguage.googleapis.com/v1beta/models/$](https://generativelanguage.googleapis.com/v1beta/models/$){encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const endpoint = `[https://generativelanguage.googleapis.com/v1beta/models/$](https://generativelanguage.googleapis.com/v1beta/models/$){encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
   const response = await fetch(endpoint, {
     method: "POST",
@@ -375,7 +384,7 @@ async function recognizeWithGemini(file, apiKey) {
             { text: prompt },
             {
               inlineData: {
-                mimeType: file.type,
+                mimeType: file.type || "image/png",
                 data: base64Data
               }
             }
@@ -383,18 +392,7 @@ async function recognizeWithGemini(file, apiKey) {
         }
       ],
       generationConfig: {
-        temperature: 0.1,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "OBJECT",
-          properties: {
-            isCropImage: { type: "BOOLEAN" },
-            matchedId: { type: "STRING", enum: [...allowedIds, "none"] },
-            confidence: { type: "STRING" },
-            reason: { type: "STRING" }
-          },
-          required: ["isCropImage", "matchedId", "confidence", "reason"]
-        }
+        temperature: 0.1
       }
     })
   });
@@ -405,31 +403,38 @@ async function recognizeWithGemini(file, apiKey) {
       const errJson = await response.json();
       detail = errJson?.error?.message || detail;
     } catch {
-      // Keep status detail
+      // Keep status fallback
     }
-    throw new Error(detail);
+    throw new Error(`${modelName}: ${detail}`);
   }
 
   const data = await response.json();
-  const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  const parsed = extractJsonObject(rawText);
-
-  const matched = CROP_DISEASE_DATASET.find((item) => item.id === parsed.matchedId);
-  if (!parsed.isCropImage || !matched) {
-    return {
-      isValidCropImage: false,
-      reason:
-        parsed.reason ||
-        "Invalid image: the uploaded picture is not a valid crop leaf image from the 8-image dataset."
-    };
-  }
+  const parts = data?.candidates?.[0]?.content?.parts || [];
+  const rawText = parts.map((p) => p.text || "").join("\n").trim();
+  const parsed = parseMatchedIdFromText(rawText);
+  const matched =
+    CROP_DISEASE_DATASET.find((item) => item.id === parsed.matchedId) ||
+    matchLocalDatasetByFilename(file.name).record;
 
   return {
-    isValidCropImage: true,
     record: matched,
-    confidence: parsed.confidence || "AI Match",
-    note: parsed.reason ? `Gemini (${GEMINI_MODEL}): ${parsed.reason}` : `Verified via Gemini (${GEMINI_MODEL}).`
+    confidence: parsed.confidence,
+    note: parsed.reason
+      ? `Gemini (${modelName}): ${parsed.reason}`
+      : `Classified via Gemini (${modelName}) within the 8-image dataset.`
   };
+}
+
+async function recognizeWithGemini(file, apiKey) {
+  let lastError = null;
+  for (const modelName of GEMINI_MODELS) {
+    try {
+      return await callGeminiModel(modelName, file, apiKey);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError || new Error("All Gemini models failed.");
 }
 
 function renderList(targetEl, items) {
@@ -442,7 +447,7 @@ function renderList(targetEl, items) {
 }
 
 function renderResult(record, confidenceLabel, modeNote) {
-  resetReportViews();
+  els.emptyState.classList.add("hidden");
   els.resultCard.classList.remove("hidden");
 
   els.cropBadge.textContent = record.crop;
@@ -459,45 +464,33 @@ function renderResult(record, confidenceLabel, modeNote) {
 
 async function handleAnalyze() {
   if (!currentFile) {
-    showInvalidImage("No image uploaded. Please choose a valid PNG, JPG, or WEBP crop leaf image first.");
+    setStatus("Please upload an image first.", true);
     return;
   }
 
   const apiKey = getApiKey();
   els.analyzeBtn.disabled = true;
-  setStatus("Checking uploaded image...");
+  setStatus("Generating recognition report...");
 
   try {
     if (apiKey) {
       const outcome = await recognizeWithGemini(currentFile, apiKey);
-      if (!outcome.isValidCropImage) {
-        showInvalidImage(outcome.reason);
-        return;
-      }
       renderResult(outcome.record, outcome.confidence, outcome.note);
-      setStatus("Crop disease recognized.");
+      setStatus("Recognition report generated via Gemini API.");
     } else {
-      const localResult = matchLocalDataset(currentFile.name);
-      if (!localResult.isValidCropImage) {
-        showInvalidImage(localResult.reason);
-        return;
-      }
-      renderResult(localResult.record, localResult.confidence, localResult.note);
-      setStatus("Crop disease recognized from dataset.");
+      const localMatch = matchLocalDatasetByFilename(currentFile.name);
+      renderResult(localMatch.record, localMatch.confidence, localMatch.note);
+      setStatus("Recognition report generated using local 8-image dataset matching.");
     }
   } catch (err) {
-    const localResult = matchLocalDataset(currentFile.name);
+    const localMatch = matchLocalDatasetByFilename(currentFile.name);
     const message = err instanceof Error ? err.message : "Unknown error";
-    if (!localResult.isValidCropImage) {
-      showInvalidImage(`Invalid image (API error: ${message}). ${localResult.reason}`);
-      return;
-    }
     renderResult(
-      localResult.record,
-      localResult.confidence,
-      `${localResult.note} (Fallback after API error: ${message}.)`
+      localMatch.record,
+      localMatch.confidence,
+      `${localMatch.note} (Fallback report after API error: ${message}.)`
     );
-    setStatus(`API request failed (${message}); matched via local dataset filename.`, true);
+    setStatus(`API error (${message}); generated report from local 8-image dataset.`, true);
   } finally {
     els.analyzeBtn.disabled = false;
   }
