@@ -1,13 +1,12 @@
 /**
  * Crop Disease Recognition Controller & 8-Image Dataset
- * Restricted strictly to the 8 crop disease images generated in this session.
+ * Uses ONLY the 8 crop disease images generated in this session and rejects non-crop images as invalid.
  */
 
 const CROP_DISEASE_DATASET = [
   {
     id: "tomato_early_blight",
     imageFile: "0d62cdf4.png",
-    imagePath: "./images/0d62cdf4.png",
     crop: "Tomato",
     disease: "Early Blight",
     summary: "Fungal leaf disease of tomato causing concentric target-like lesions and yellowing around affected spots.",
@@ -29,7 +28,6 @@ const CROP_DISEASE_DATASET = [
   {
     id: "potato_late_blight",
     imageFile: "afb0af22.png",
-    imagePath: "./images/afb0af22.png",
     crop: "Potato",
     disease: "Late Blight",
     summary: "Rapidly spreading oomycete disease of potato foliage that produces dark water-soaked lesions and pale borders.",
@@ -51,7 +49,6 @@ const CROP_DISEASE_DATASET = [
   {
     id: "apple_apple_scab",
     imageFile: "c6bc7eb7.png",
-    imagePath: "./images/c6bc7eb7.png",
     crop: "Apple",
     disease: "Apple Scab",
     summary: "Common fungal disease of apple leaves producing olive-brown velvety spots and leaf distortion.",
@@ -73,7 +70,6 @@ const CROP_DISEASE_DATASET = [
   {
     id: "corn_northern_leaf_blight",
     imageFile: "ab6757e7.png",
-    imagePath: "./images/ab6757e7.png",
     crop: "Corn (Maize)",
     disease: "Northern Leaf Blight",
     summary: "Fungal leaf disease of maize characterized by long, cigar-shaped lesions running along the blade.",
@@ -95,7 +91,6 @@ const CROP_DISEASE_DATASET = [
   {
     id: "grape_black_rot",
     imageFile: "a9652c6b.png",
-    imagePath: "./images/a9652c6b.png",
     crop: "Grape",
     disease: "Black Rot",
     summary: "Fungal disease of grape leaves marked by circular tan lesions with darker borders and tiny black fruiting bodies.",
@@ -117,7 +112,6 @@ const CROP_DISEASE_DATASET = [
   {
     id: "corn_common_rust",
     imageFile: "9d2a7ba2.png",
-    imagePath: "./images/9d2a7ba2.png",
     crop: "Corn (Maize)",
     disease: "Common Rust",
     summary: "Foliar rust disease of corn forming elongated, powdery reddish-brown pustules across leaf blades.",
@@ -139,7 +133,6 @@ const CROP_DISEASE_DATASET = [
   {
     id: "strawberry_leaf_scorch",
     imageFile: "e217b948.png",
-    imagePath: "./images/e217b948.png",
     crop: "Strawberry",
     disease: "Leaf Scorch",
     summary: "Fungal leaf disease of strawberry causing dark purple spots and drying brown ('scorched') margins.",
@@ -161,7 +154,6 @@ const CROP_DISEASE_DATASET = [
   {
     id: "peach_bacterial_spot",
     imageFile: "dd77f197.png",
-    imagePath: "./images/dd77f197.png",
     crop: "Peach",
     disease: "Bacterial Spot",
     summary: "Bacterial leaf disease of peach causing dark angular lesions and shot-hole perforations.",
@@ -182,6 +174,7 @@ const CROP_DISEASE_DATASET = [
   }
 ];
 
+const ALLOWED_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"];
 const GEMINI_MODEL = "gemini-3.5-flash-lite";
 const SESSION_KEY_STORAGE = "crop_disease_gemini_api_key";
 
@@ -196,8 +189,9 @@ const els = {
   previewImage: document.getElementById("previewImage"),
   previewName: document.getElementById("previewName"),
   analyzeBtn: document.getElementById("analyzeBtn"),
-  sampleGallery: document.getElementById("sampleGallery"),
   statusBanner: document.getElementById("statusBanner"),
+  invalidBox: document.getElementById("invalidBox"),
+  invalidReason: document.getElementById("invalidReason"),
   emptyState: document.getElementById("emptyState"),
   resultCard: document.getElementById("resultCard"),
   cropBadge: document.getElementById("cropBadge"),
@@ -211,7 +205,6 @@ const els = {
 };
 
 let currentFile = null;
-let currentSampleId = null;
 let activeObjectUrl = null;
 
 function init() {
@@ -221,10 +214,9 @@ function init() {
       els.apiKeyInput.value = savedKey;
     }
   } catch {
-    // Ignore storage access errors in restricted browser contexts
+    // Ignore storage access errors
   }
   updateApiStatus();
-  renderSampleGallery();
   bindEvents();
 }
 
@@ -239,9 +231,9 @@ function getApiKey() {
 function updateApiStatus() {
   const key = getApiKey();
   if (key) {
-    els.apiStatus.textContent = `Gemini API key active in session (${GEMINI_MODEL}).`;
+    els.apiStatus.textContent = `Gemini API key active (${GEMINI_MODEL}): validates crop leaf images against the 8-image dataset.`;
   } else {
-    els.apiStatus.textContent = "No API key saved: will match against the 8-image dataset locally.";
+    els.apiStatus.textContent = "No API key saved: will check uploaded files against the 8 crop dataset images locally.";
   }
 }
 
@@ -250,45 +242,6 @@ function releaseObjectUrl() {
     URL.revokeObjectURL(activeObjectUrl);
     activeObjectUrl = null;
   }
-}
-
-function renderSampleGallery() {
-  els.sampleGallery.innerHTML = "";
-  CROP_DISEASE_DATASET.forEach((item) => {
-    const card = document.createElement("button");
-    card.type = "button";
-    card.className = "sample-card";
-    card.dataset.id = item.id;
-    card.setAttribute("aria-pressed", "false");
-
-    const img = document.createElement("img");
-    img.src = item.imagePath;
-    img.alt = `${item.crop} — ${item.disease}`;
-
-    const body = document.createElement("div");
-    body.className = "sample-card-body";
-
-    const cropEl = document.createElement("div");
-    cropEl.className = "sample-crop";
-    cropEl.textContent = item.crop;
-
-    const diseaseEl = document.createElement("div");
-    diseaseEl.className = "sample-disease";
-    diseaseEl.textContent = item.disease;
-
-    body.append(cropEl, diseaseEl);
-    card.append(img, body);
-    card.addEventListener("click", () => selectSample(item));
-    els.sampleGallery.appendChild(card);
-  });
-}
-
-function setActiveSampleCard(id) {
-  document.querySelectorAll(".sample-card").forEach((card) => {
-    const isSelected = card.dataset.id === id;
-    card.classList.toggle("active", isSelected);
-    card.setAttribute("aria-pressed", String(isSelected));
-  });
 }
 
 function setStatus(message, isError = false) {
@@ -303,38 +256,38 @@ function setStatus(message, isError = false) {
   els.statusBanner.classList.remove("hidden");
 }
 
-function selectSample(item) {
-  releaseObjectUrl();
-  els.imageUpload.value = "";
-  currentSampleId = item.id;
-  currentFile = null;
+function resetReportViews() {
+  els.invalidBox.classList.add("hidden");
+  els.resultCard.classList.add("hidden");
+  els.emptyState.classList.add("hidden");
+}
 
-  setActiveSampleCard(item.id);
-  els.previewImage.src = item.imagePath;
-  els.previewImage.alt = `${item.crop} ${item.disease} sample preview`;
-  els.previewName.textContent = `${item.imageFile} (${item.crop} — ${item.disease})`;
-  els.previewWrapper.classList.remove("hidden");
-  setStatus("");
-
-  renderResult(item, "Dataset Match", "Loaded directly from the 8-image crop disease dataset.");
+function showInvalidImage(reason) {
+  resetReportViews();
+  els.invalidReason.textContent = reason;
+  els.invalidBox.classList.remove("hidden");
+  setStatus("Invalid image: uploaded file is not a recognized crop leaf image.", true);
 }
 
 function acceptUploadedFile(file) {
-  if (!file || !file.type.startsWith("image/")) {
-    setStatus("Please choose a valid PNG, JPG, or WEBP image file.", true);
+  if (!file || !ALLOWED_MIME_TYPES.includes(file.type)) {
+    releaseObjectUrl();
+    currentFile = null;
+    els.previewWrapper.classList.add("hidden");
+    showInvalidImage("Unsupported file type. Please upload a PNG, JPG, or WEBP crop leaf image.");
     return;
   }
 
   releaseObjectUrl();
   currentFile = file;
-  currentSampleId = null;
-  setActiveSampleCard(null);
-
   activeObjectUrl = URL.createObjectURL(file);
   els.previewImage.src = activeObjectUrl;
-  els.previewImage.alt = `Uploaded leaf image: ${file.name}`;
+  els.previewImage.alt = `Uploaded image: ${file.name}`;
   els.previewName.textContent = file.name;
   els.previewWrapper.classList.remove("hidden");
+
+  resetReportViews();
+  els.emptyState.classList.remove("hidden");
   setStatus("");
 }
 
@@ -352,49 +305,32 @@ function fileToBase64(file) {
       const result = String(reader.result || "");
       const base64 = result.includes(",") ? result.split(",")[1] : result;
       if (!base64) {
-        reject(new Error("Empty image data."));
+        reject(new Error("Could not read image contents."));
         return;
       }
       resolve(base64);
     };
-    reader.onerror = () => reject(new Error("Could not read image file."));
+    reader.onerror = () => reject(new Error("Failed to read image file."));
     reader.readAsDataURL(file);
   });
 }
 
-function matchLocalDatasetByFilename(filename) {
+function matchLocalDataset(filename) {
   const cleanName = (filename || "").toLowerCase();
-  const byFile = CROP_DISEASE_DATASET.find((item) => cleanName.includes(item.imageFile.toLowerCase()));
-  if (byFile) {
+  const matched = CROP_DISEASE_DATASET.find((item) => cleanName.includes(item.imageFile.toLowerCase()));
+  if (!matched) {
     return {
-      record: byFile,
-      confidence: "Filename Match",
-      note: "Matched by dataset filename in the 8-image dataset."
+      isValidCropImage: false,
+      reason:
+        "Invalid image: this file does not match any of the 8 crop leaf disease images in the project dataset. Upload one of the valid crop leaf images or add a Gemini API key for visual crop verification."
     };
   }
 
-  const tokens = cleanName.replace(/[^a-z0-9]+/g, " ").trim().split(/\s+/).filter(Boolean);
-  let bestRecord = CROP_DISEASE_DATASET[0];
-  let bestScore = -1;
-
-  for (const item of CROP_DISEASE_DATASET) {
-    const haystack = `${item.crop} ${item.disease} ${item.symptoms.join(" ")}`.toLowerCase();
-    let score = 0;
-    for (const token of tokens) {
-      if (token.length > 2 && haystack.includes(token)) {
-        score += 1;
-      }
-    }
-    if (score > bestScore) {
-      bestScore = score;
-      bestRecord = item;
-    }
-  }
-
   return {
-    record: bestRecord,
-    confidence: bestScore > 0 ? "Keyword Match" : "Default Match",
-    note: "Matched locally against the 8-image dataset (no API key used)."
+    isValidCropImage: true,
+    record: matched,
+    confidence: "Dataset Match",
+    note: "Verified against the 8-image crop disease dataset locally."
   };
 }
 
@@ -408,7 +344,7 @@ function extractJsonObject(rawText) {
   const start = cleaned.indexOf("{");
   const end = cleaned.lastIndexOf("}");
   if (start === -1 || end === -1 || end <= start) {
-    throw new Error("Model response did not contain a valid JSON object.");
+    throw new Error("Model response did not contain valid JSON.");
   }
   return JSON.parse(cleaned.slice(start, end + 1));
 }
@@ -419,10 +355,12 @@ async function recognizeWithGemini(file, apiKey) {
   const catalogSummary = CROP_DISEASE_DATASET.map((d) => `- ${d.id}: ${d.crop} — ${d.disease}`).join("\n");
 
   const prompt = [
-    "You are a plant pathology classifier for a crop disease recognition website.",
-    "Match the uploaded leaf image strictly to ONE of the following 8 dataset entries:",
+    "You are a plant pathology image verifier for a crop disease recognition website.",
+    "Step 1: Determine whether the uploaded image is actually a plant/crop leaf showing one of the 8 crop diseases below.",
+    "If the image shows people, animals, vehicles, indoor scenes, text/screenshots, random objects, or crops/diseases NOT in this 8-item list, set isCropImage to false and matchedId to 'none'.",
+    "Allowed 8 dataset entries:",
     catalogSummary,
-    'Return ONLY JSON matching: {"matchedId":"<one of the 8 ids>","confidence":"High | Medium | Low","reason":"short visual explanation"}'
+    'Return ONLY JSON matching: {"isCropImage":boolean,"matchedId":"<one of the 8 ids or none>","confidence":"High | Medium | Low","reason":"short explanation"}'
   ].join("\n");
 
   const endpoint = `[https://generativelanguage.googleapis.com/v1beta/models/$](https://generativelanguage.googleapis.com/v1beta/models/$){encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`;
@@ -437,7 +375,7 @@ async function recognizeWithGemini(file, apiKey) {
             { text: prompt },
             {
               inlineData: {
-                mimeType: file.type || "image/png",
+                mimeType: file.type,
                 data: base64Data
               }
             }
@@ -450,11 +388,12 @@ async function recognizeWithGemini(file, apiKey) {
         responseSchema: {
           type: "OBJECT",
           properties: {
-            matchedId: { type: "STRING", enum: allowedIds },
+            isCropImage: { type: "BOOLEAN" },
+            matchedId: { type: "STRING", enum: [...allowedIds, "none"] },
             confidence: { type: "STRING" },
             reason: { type: "STRING" }
           },
-          required: ["matchedId", "confidence", "reason"]
+          required: ["isCropImage", "matchedId", "confidence", "reason"]
         }
       }
     })
@@ -466,7 +405,7 @@ async function recognizeWithGemini(file, apiKey) {
       const errJson = await response.json();
       detail = errJson?.error?.message || detail;
     } catch {
-      // Keep status fallback
+      // Keep status detail
     }
     throw new Error(detail);
   }
@@ -475,16 +414,21 @@ async function recognizeWithGemini(file, apiKey) {
   const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
   const parsed = extractJsonObject(rawText);
 
-  const matched =
-    CROP_DISEASE_DATASET.find((item) => item.id === parsed.matchedId) ||
-    matchLocalDatasetByFilename(file.name).record;
+  const matched = CROP_DISEASE_DATASET.find((item) => item.id === parsed.matchedId);
+  if (!parsed.isCropImage || !matched) {
+    return {
+      isValidCropImage: false,
+      reason:
+        parsed.reason ||
+        "Invalid image: the uploaded picture is not a valid crop leaf image from the 8-image dataset."
+    };
+  }
 
   return {
+    isValidCropImage: true,
     record: matched,
     confidence: parsed.confidence || "AI Match",
-    note: parsed.reason
-      ? `Gemini (${GEMINI_MODEL}): ${parsed.reason}`
-      : `Classified via Gemini (${GEMINI_MODEL}) within the 8-image dataset.`
+    note: parsed.reason ? `Gemini (${GEMINI_MODEL}): ${parsed.reason}` : `Verified via Gemini (${GEMINI_MODEL}).`
   };
 }
 
@@ -498,7 +442,7 @@ function renderList(targetEl, items) {
 }
 
 function renderResult(record, confidenceLabel, modeNote) {
-  els.emptyState.classList.add("hidden");
+  resetReportViews();
   els.resultCard.classList.remove("hidden");
 
   els.cropBadge.textContent = record.crop;
@@ -510,43 +454,50 @@ function renderResult(record, confidenceLabel, modeNote) {
   renderList(els.symptomsList, record.symptoms);
   renderList(els.precautionsList, record.precautions);
 
-  els.analysisModeNote.textContent = `${modeNote} Dataset image: ${record.imageFile}.`;
+  els.analysisModeNote.textContent = `${modeNote} Dataset file: ${record.imageFile}.`;
 }
 
 async function handleAnalyze() {
-  if (currentSampleId) {
-    const sample = CROP_DISEASE_DATASET.find((s) => s.id === currentSampleId);
-    if (sample) {
-      renderResult(sample, "Dataset Match", "Loaded from the 8-image dataset.");
-      setStatus("Recognition complete.");
-    }
-    return;
-  }
-
   if (!currentFile) {
-    setStatus("Please select one of the 8 sample leaf images or upload an image first.", true);
+    showInvalidImage("No image uploaded. Please choose a valid PNG, JPG, or WEBP crop leaf image first.");
     return;
   }
 
   const apiKey = getApiKey();
   els.analyzeBtn.disabled = true;
-  setStatus("Analyzing leaf image...");
+  setStatus("Checking uploaded image...");
 
   try {
     if (apiKey) {
       const outcome = await recognizeWithGemini(currentFile, apiKey);
+      if (!outcome.isValidCropImage) {
+        showInvalidImage(outcome.reason);
+        return;
+      }
       renderResult(outcome.record, outcome.confidence, outcome.note);
-      setStatus("Recognition complete via Gemini API.");
+      setStatus("Crop disease recognized.");
     } else {
-      const localMatch = matchLocalDatasetByFilename(currentFile.name);
-      renderResult(localMatch.record, localMatch.confidence, localMatch.note);
-      setStatus("Recognition complete using local 8-image dataset matching.");
+      const localResult = matchLocalDataset(currentFile.name);
+      if (!localResult.isValidCropImage) {
+        showInvalidImage(localResult.reason);
+        return;
+      }
+      renderResult(localResult.record, localResult.confidence, localResult.note);
+      setStatus("Crop disease recognized from dataset.");
     }
   } catch (err) {
-    const fallback = matchLocalDatasetByFilename(currentFile.name);
+    const localResult = matchLocalDataset(currentFile.name);
     const message = err instanceof Error ? err.message : "Unknown error";
-    renderResult(fallback.record, fallback.confidence, `${fallback.note} Fallback used due to API error: ${message}.`);
-    setStatus(`Gemini API unavailable (${message}); showed local 8-image dataset match.`, true);
+    if (!localResult.isValidCropImage) {
+      showInvalidImage(`Invalid image (API error: ${message}). ${localResult.reason}`);
+      return;
+    }
+    renderResult(
+      localResult.record,
+      localResult.confidence,
+      `${localResult.note} (Fallback after API error: ${message}.)`
+    );
+    setStatus(`API request failed (${message}); matched via local dataset filename.`, true);
   } finally {
     els.analyzeBtn.disabled = false;
   }
