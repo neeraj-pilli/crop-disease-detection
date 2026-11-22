@@ -11,16 +11,16 @@
     <div class="container">
       <h1>Crop Disease Recognition</h1>
       <p class="subtitle">
-        Leaf disease identification with causes, symptoms, and precautions using our 8-image dataset
+        Identify crop diseases and inspect causes, symptoms, and precautions from our 8-image dataset
       </p>
     </div>
   </header>
 
   <main class="container main-grid">
     <!-- Left Column: API Key, Upload & 8-Image Dataset -->
-    <section class="panel input-panel">
+    <section class="panel input-panel" aria-label="Image input and dataset">
       <div class="api-box">
-        <label for="apiKeyInput">Gemini API Key (optional for local dataset demo)</label>
+        <label for="apiKeyInput">Gemini API Key (optional for local dataset matching)</label>
         <div class="api-row">
           <input
             type="password"
@@ -31,17 +31,17 @@
           <button type="button" id="saveKeyBtn" class="btn btn-secondary">Save</button>
           <button type="button" id="clearKeyBtn" class="btn btn-ghost">Clear</button>
         </div>
-        <p id="apiStatus" class="helper-text">
+        <p id="apiStatus" class="helper-text" role="status" aria-live="polite">
           No API key saved: will match against the 8-image dataset locally.
         </p>
       </div>
 
       <div class="upload-box">
         <h2>Upload Leaf Image</h2>
-        <label for="imageUpload" class="dropzone">
+        <label for="imageUpload" id="dropzone" class="dropzone">
           <input type="file" id="imageUpload" accept="image/png,image/jpeg,image/webp" hidden />
-          <span class="dropzone-title">Choose a leaf image from your device</span>
-          <span class="dropzone-sub">PNG, JPG, or WEBP (best results with the 8 generated test images)</span>
+          <span class="dropzone-title">Click or drag a leaf image here</span>
+          <span class="dropzone-sub">PNG, JPG, or WEBP (best with the 8 generated test images)</span>
         </label>
 
         <div id="previewWrapper" class="preview-wrapper hidden">
@@ -55,18 +55,18 @@
 
       <div class="dataset-box">
         <h2>8-Image Dataset Samples</h2>
-        <p class="helper-text">Click a sample to preview and recognize from the 8 generated images:</p>
+        <p class="helper-text">Select a sample from the 8 generated leaf images:</p>
         <div id="sampleGallery" class="sample-grid"></div>
       </div>
     </section>
 
     <!-- Right Column: Recognition Output -->
-    <section class="panel result-panel">
+    <section class="panel result-panel" aria-label="Recognition output">
       <h2>Recognition Report</h2>
-      <div id="statusBanner" class="status-banner hidden"></div>
+      <div id="statusBanner" class="status-banner hidden" role="status" aria-live="polite"></div>
 
       <div id="emptyState" class="empty-state">
-        Select one of the 8 sample leaf images or upload an image to view the disease name, causes, symptoms, and precautions.
+        Select one of the 8 sample leaf images or upload a leaf image to view the crop disease name, causes, symptoms, and precautions.
       </div>
 
       <article id="resultCard" class="result-card hidden">
@@ -76,7 +76,7 @@
             <h3 id="diseaseTitle"></h3>
           </div>
           <div class="confidence-box">
-            <span class="confidence-label">Match Confidence</span>
+            <span class="confidence-label">Match Status</span>
             <strong id="confidenceValue"></strong>
           </div>
         </div>
