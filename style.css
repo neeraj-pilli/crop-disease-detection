@@ -9,7 +9,6 @@
   --primary-hover: #165432;
   --accent: #e5f3eb;
   --danger-bg: #fdecec;
-  --danger-border: #f5b5b5;
   --danger-text: #991b1b;
   --focus-ring: rgba(30, 111, 67, 0.28);
 }
@@ -237,24 +236,6 @@ label {
 .status-banner.error {
   background: var(--danger-bg);
   color: var(--danger-text);
-}
-
-.invalid-box {
-  background: var(--danger-bg);
-  border: 1px solid var(--danger-border);
-  color: var(--danger-text);
-  border-radius: 10px;
-  padding: 16px;
-  margin-bottom: 14px;
-}
-
-.invalid-box h3 {
-  font-size: 1.05rem;
-  margin-bottom: 6px;
-}
-
-.invalid-box p {
-  font-size: 0.9rem;
 }
 
 .empty-state {
