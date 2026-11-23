@@ -228,9 +228,9 @@ function getApiKey() {
 function updateApiStatus() {
   const key = getApiKey();
   if (key) {
-    els.apiStatus.textContent = `Gemini API key active (${GEMINI_MODELS[0]}): matches uploaded images to the 8-image dataset.`;
+    els.apiStatus.textContent = `Gemini API key active (${GEMINI_MODELS[0]}): matches uploaded images to the dataset.`;
   } else {
-    els.apiStatus.textContent = "No API key saved: will match uploaded images against the 8-image dataset locally.";
+    els.apiStatus.textContent = "No API key saved: will match uploaded images locally.";
   }
 }
 
@@ -296,8 +296,8 @@ function matchLocalDatasetByFilename(filename) {
   if (byFile) {
     return {
       record: byFile,
-      confidence: "Filename Match",
-      note: "Matched by dataset image filename in the 8-image dataset."
+      confidence: "Matched",
+      note: ""
     };
   }
 
@@ -321,8 +321,8 @@ function matchLocalDatasetByFilename(filename) {
 
   return {
     record: bestRecord,
-    confidence: bestScore > 0 ? "Keyword Match" : "Dataset Match",
-    note: "Matched against the 8-image crop disease dataset locally."
+    confidence: bestScore > 0 ? "Keyword Match" : "Matched",
+    note: ""
   };
 }
 
@@ -419,9 +419,7 @@ async function callGeminiModel(modelName, file, apiKey) {
   return {
     record: matched,
     confidence: parsed.confidence,
-    note: parsed.reason
-      ? `Gemini (${modelName}): ${parsed.reason}`
-      : `Classified via Gemini (${modelName}) within the 8-image dataset.`
+    note: parsed.reason ? `Gemini (${modelName}): ${parsed.reason}` : ""
   };
 }
 
@@ -459,7 +457,8 @@ function renderResult(record, confidenceLabel, modeNote) {
   renderList(els.symptomsList, record.symptoms);
   renderList(els.precautionsList, record.precautions);
 
-  els.analysisModeNote.textContent = `${modeNote} Dataset file: ${record.imageFile}.`;
+  els.analysisModeNote.textContent = modeNote || "";
+  els.analysisModeNote.classList.toggle("hidden", !modeNote);
 }
 
 async function handleAnalyze() {
@@ -480,17 +479,13 @@ async function handleAnalyze() {
     } else {
       const localMatch = matchLocalDatasetByFilename(currentFile.name);
       renderResult(localMatch.record, localMatch.confidence, localMatch.note);
-      setStatus("Recognition report generated using local 8-image dataset matching.");
+      setStatus("");
     }
   } catch (err) {
     const localMatch = matchLocalDatasetByFilename(currentFile.name);
     const message = err instanceof Error ? err.message : "Unknown error";
-    renderResult(
-      localMatch.record,
-      localMatch.confidence,
-      `${localMatch.note} (Fallback report after API error: ${message}.)`
-    );
-    setStatus(`API error (${message}); generated report from local 8-image dataset.`, true);
+    renderResult(localMatch.record, localMatch.confidence, "");
+    setStatus(`API error (${message}); generated report from local dataset.`, true);
   } finally {
     els.analyzeBtn.disabled = false;
   }
