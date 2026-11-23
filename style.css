@@ -267,26 +267,6 @@ label {
   font-size: 1.3rem;
 }
 
-.confidence-box {
-  text-align: right;
-  background: var(--surface-alt);
-  padding: 8px 12px;
-  border-radius: 8px;
-  min-width: 115px;
-  flex-shrink: 0;
-}
-
-.confidence-label {
-  display: block;
-  font-size: 0.74rem;
-  color: var(--muted);
-}
-
-.confidence-box strong {
-  font-size: 0.96rem;
-  color: var(--primary);
-}
-
 .summary-text {
   font-size: 0.94rem;
   margin-bottom: 16px;
