@@ -193,7 +193,6 @@ const els = {
   resultCard: document.getElementById("resultCard"),
   cropBadge: document.getElementById("cropBadge"),
   diseaseTitle: document.getElementById("diseaseTitle"),
-  confidenceValue: document.getElementById("confidenceValue"),
   summaryText: document.getElementById("summaryText"),
   causesList: document.getElementById("causesList"),
   symptomsList: document.getElementById("symptomsList"),
@@ -296,7 +295,6 @@ function matchLocalDatasetByFilename(filename) {
   if (byFile) {
     return {
       record: byFile,
-      confidence: "Matched",
       note: ""
     };
   }
@@ -321,7 +319,6 @@ function matchLocalDatasetByFilename(filename) {
 
   return {
     record: bestRecord,
-    confidence: bestScore > 0 ? "Keyword Match" : "Matched",
     note: ""
   };
 }
@@ -341,7 +338,6 @@ function parseMatchedIdFromText(rawText) {
       if (parsed && typeof parsed.matchedId === "string") {
         return {
           matchedId: parsed.matchedId.trim(),
-          confidence: parsed.confidence || "AI Match",
           reason: parsed.reason || ""
         };
       }
@@ -356,7 +352,6 @@ function parseMatchedIdFromText(rawText) {
   );
   return {
     matchedId: found ? found.id : "",
-    confidence: "AI Match",
     reason: cleaned.slice(0, 180)
   };
 }
@@ -369,7 +364,7 @@ async function callGeminiModel(modelName, file, apiKey) {
     "You are a plant pathology assistant for a crop disease recognition website.",
     "Match the uploaded image strictly to ONE of these 8 dataset entries:",
     catalogSummary,
-    'Return ONLY JSON: {"matchedId":"<one of the 8 ids>","confidence":"High | Medium | Low","reason":"short visual reason"}'
+    'Return ONLY JSON: {"matchedId":"<one of the 8 ids>","reason":"short visual reason"}'
   ].join("\n");
 
   const endpoint = `[https://generativelanguage.googleapis.com/v1beta/models/$](https://generativelanguage.googleapis.com/v1beta/models/$){encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`;
@@ -418,7 +413,6 @@ async function callGeminiModel(modelName, file, apiKey) {
 
   return {
     record: matched,
-    confidence: parsed.confidence,
     note: parsed.reason ? `Gemini (${modelName}): ${parsed.reason}` : ""
   };
 }
@@ -444,13 +438,12 @@ function renderList(targetEl, items) {
   });
 }
 
-function renderResult(record, confidenceLabel, modeNote) {
+function renderResult(record, modeNote) {
   els.emptyState.classList.add("hidden");
   els.resultCard.classList.remove("hidden");
 
   els.cropBadge.textContent = record.crop;
   els.diseaseTitle.textContent = record.disease;
-  els.confidenceValue.textContent = confidenceLabel;
   els.summaryText.textContent = record.summary;
 
   renderList(els.causesList, record.causes);
@@ -474,17 +467,17 @@ async function handleAnalyze() {
   try {
     if (apiKey) {
       const outcome = await recognizeWithGemini(currentFile, apiKey);
-      renderResult(outcome.record, outcome.confidence, outcome.note);
+      renderResult(outcome.record, outcome.note);
       setStatus("Recognition report generated via Gemini API.");
     } else {
       const localMatch = matchLocalDatasetByFilename(currentFile.name);
-      renderResult(localMatch.record, localMatch.confidence, localMatch.note);
+      renderResult(localMatch.record, localMatch.note);
       setStatus("");
     }
   } catch (err) {
     const localMatch = matchLocalDatasetByFilename(currentFile.name);
     const message = err instanceof Error ? err.message : "Unknown error";
-    renderResult(localMatch.record, localMatch.confidence, "");
+    renderResult(localMatch.record, "");
     setStatus(`API error (${message}); generated report from local dataset.`, true);
   } finally {
     els.analyzeBtn.disabled = false;
